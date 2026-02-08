@@ -1,0 +1,293 @@
+primero creamos el repo
+usamos nestJS para hacer las APIs: npm install -g @nestjs/cli
+creamos un proyecto de backend para la api con nest: nest new backend
+seleccionamos npm como gestor de paquetes
+corremos la API: npm run start:dev 
+(entrando en localhost:3000 nos devuelve hello world! ya hay api)
+
+ahora frontend que usaremos react con vite 
+npm create vite@latest frontend -- --template react-ts
+iniciamos el frontend : npm run dev
+(podemos ver el frontend en localhost:5173)
+
+creamos el fichero encargado de la instalación con Docker
+creamos un archivo de config de Docker: docker-compose.yml
+y los Dockerfiles en las carpetas de frontend y backend para que se ejecuten al hacer el build: docker compose up --build
+
+ahora creamos la base de la base de datos, usaremos prisma 
+dentro de backend instalamos prisma : 
+npm install @prisma/client (cliente para usar la base de datos desde el codigo)
+npm install -D prisma (herramienta de desarrollo)
+una vez instalados iniciamos prisma: npx prisma init --datasource-provider sqlite
+ahora abrimos y configuramos "backend/prisma/schema.prisma" para definir nuestras tablas
+creamos usuario y producto para empezar con algo basico
+Creamos el cliente que usaremos desde nestJS para hacer CRUD : npx prisma generate
+para crear la base de datos y la tabla devinida en el .env que se hace referencia en el schema.prisma,
+asi como las tablas de cliente y usuario o las definidas en el schema: npx prisma db push
+
+prueba de la base de datos con nestJS editamos el archivo service del src, aqui hay lo tipico, modelo, serviio, controlador, main y controlador.spec que hay que ver que es
+editamos el mensaje de hello world con el numero de usuarios en nuestra base de datos, para ello también primero creamos el prisma.service y prisma.module para poder acceder desde cualquier servicio:
+ 
+"
+import { Injectable } from '@nestjs/common';
+import { PrismaService } from './prisma/prisma.service';
+
+@Injectable()
+export class AppService {
+  constructor(private prisma: PrismaService) {}
+
+  async getHello(): Promise<string> {
+    const users = await this.prisma.user.findMany();
+    return `Users in DB: ${users.length}`;
+  }
+}
+
+
+"
+corremos el backend y podemos ver como nos sale (Users in DB: 0)
+
+una vez tenemos esto vas a crear una seed en prisma de ejemplo para la demo
+creamos seed.ts en la carpeta de prisma e introducimos ahi un usuario de ejemplo y un par de productos
+instalamos dependencias de beracrypt para cifrar las contraseñas de los usuarios: npm install bcrypt || npm install -D @types/bcrypt
+para correr el seed ecesitamos añadirlo al package.json, dentro de scripts : (añadimos esto) "seed": "ts-node prisma/seed.ts"
+(lo hacemos Para poder ejecutar la semilla con un comando simple: "npm run seed".  "seed": "ts-node prisma/seed.ts" dice: “ejecuta seed.ts usando ts-node”.)
+también instalamos ts-node: npm install -D ts-node (Es una herramienta que permite ejecutar archivos TypeScript directamente en Node.js, sin compilar primero.)
+con esto ya podemos correr el seed para tener una base de datos con relleno que poder usar: npm run seed
+
+ahora creamos los service controller y modules de producto para probar el backend: nest generate module products || nest generate controller products || nest generate service products
+creamos los findAll, findOne, create, update, delete, llamando al servicio de prisma:
+"
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { PrismaService} from '../prisma/prisma.service';
+
+@Injectable()
+export class ProductsService {
+    constructor(private prisma: PrismaService) {}
+
+    //findall findone create update delete
+    
+    async findAll(){
+        return this.prisma.product.findMany();
+    }
+....
+..
+.
+"
+hecho el backend podemos correrlo de nuevo y podemos hacer llamadas : localhost:3000/products
+
+ahora nos pondremos con el frontend basico
+primero instalamos en la carpeta de front axios: npm install axios @mui/icons-material
+para hacer consultas HTTP a APIs
+tambien instalamos materiales: npm install @mui/material @emotion/react @emotion/styled
+creamos el Productos.tsx y lo llamamos desde App:
+
+"
+import Products from './Products';
+
+function App() {
+  return (
+    <div>
+      <h1>Mini ERP Demo</h1>
+      <Products />
+    </div>
+  );
+}
+
+export default App;
+
+"
+
+para oermitir llamadas del frontent al backend el back tiene que autroizarlo en su main, las llamadas del puerto del front: 
+"
+import { NestFactory } from '@nestjs/core';
+import { AppModule } from './app.module';
+
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+
+  app.enableCors({
+    origin: 'http://localhost:5173', // permite llamadas desde React
+    methods: 'GET,POST,PUT,DELETE',
+    allowedHeaders: 'Content-Type,Authorization',
+  });
+
+  await app.listen(3000);
+}
+bootstrap();
+"
+
+hasta aqui tendriamos una demo muy basica de erp para control de productos
+...........................
+
+lo siguiente es prepararlo para docker donde editamos un poco el docker.compose y añadimos que el cliente del prisma se adapte al sistema operativo:
+en el dockfile del back : RUN npx prisma generate
+en el schema.prisma: "generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "windows", "debian-openssl-3.0.x"]
+}
+"
+
+con esto corremos docker y estaria listo
+
+
+lo siguiente es generar un script que sirva como instalador que descrge del hup de Docker el front y el back para instalarlo en la raspberry asi como prepararla para kiok que es que se inicie siempre en la aplicacion en pantalla completa
+
+
+creando la imagen de raspi SO lite para que sea plug an play, desde un ordenador Linux añadimos un script que se carga al inicio:
+
+# 1. Descarga la imagen Lite y descomprime
+wget https://downloads.raspberrypi.org/raspios_lite_armhf_latest -O raspios_lite.img.xz
+xz -d raspios_lite.img.xz
+
+# 2. Monta la imagen
+sudo losetup -Pf --show raspios_lite.img
+# Verás algo como /dev/loop0
+
+# 3. Monta root y boot
+sudo mkdir -p /mnt/rpi-root /mnt/rpi-boot
+sudo mount /dev/loop0p2 /mnt/rpi-root
+sudo mount /dev/loop0p1 /mnt/rpi-boot
+
+# 4. Copia el script de primer arranque
+sudo mkdir -p /mnt/rpi-root/usr/local/bin
+sudo cp first_setup.sh /mnt/rpi-root/usr/local/bin/
+sudo chmod +x /mnt/rpi-root/usr/local/bin/first_setup.sh
+
+# 5. Configura rc.local para ejecutarlo al inicio
+sudo bash -c 'echo "/usr/local/bin/first_setup.sh" >> /mnt/rpi-root/etc/rc.local'
+
+# 6. Desmonta todo y libera loop
+sudo umount /mnt/rpi-root /mnt/rpi-boot
+sudo losetup -d loop0
+
+
+
+"first_setup.sh": 
+
+#!/bin/bash
+set -e
+
+# --- Detectar si ya se ejecutó ---
+FLAG_FILE="/etc/first_setup_done"
+if [ -f "$FLAG_FILE" ]; then
+    exit 0
+fi
+
+echo "🚀 Configuración inicial de Mini ERP Plug & Play"
+
+# --- 1. Configurar Wi-Fi de forma interactiva ---
+read -p "Introduce el SSID de tu red Wi-Fi: " WIFI_SSID
+read -s -p "Introduce la contraseña de tu red Wi-Fi: " WIFI_PASS
+echo
+cat <<EOF > /etc/wpa_supplicant/wpa_supplicant.conf
+ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
+update_config=1
+country=ES
+
+network={
+    ssid="$WIFI_SSID"
+    psk="$WIFI_PASS"
+}
+EOF
+
+wpa_cli -i wlan0 reconfigure
+echo "✅ Wi-Fi configurado."
+
+# --- 2. Configurar zona horaria e idioma ---
+dpkg-reconfigure tzdata
+dpkg-reconfigure locales
+
+# --- 3. Actualizar e instalar dependencias mínimas ---
+apt-get update
+apt-get upgrade -y
+
+apt-get install -y docker.io docker-compose xserver-xorg xinit openbox chromium-browser
+
+# --- 4. Habilitar Docker ---
+systemctl enable docker
+systemctl start docker
+usermod -aG docker $USER
+
+# --- 5. Crear carpeta de la app y docker-compose ---
+APP_DIR="/home/$USER/erp-rpi"
+mkdir -p $APP_DIR
+cd $APP_DIR
+
+cat > docker-compose.yml <<'EOF'
+version: "3.9"
+services:
+  backend:
+    image: g3rm4nsp/erp-backend:latest
+    container_name: backend
+    ports:
+      - "3000:3000"
+    restart: always
+
+  frontend:
+    image: g3rm4nsp/erp-frontend:latest
+    container_name: frontend
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_URL=http://localhost:3000
+    restart: always
+EOF
+
+docker compose pull
+docker compose up -d
+
+# --- 6. Configurar modo kiosk ---
+mkdir -p /home/$USER/.config/lxsession/LXDE-pi
+cat > /home/$USER/.config/lxsession/LXDE-pi/autostart <<EOF
+@xset s off
+@xset -dpms
+@xset s noblank
+@chromium-browser --noerrdialogs --kiosk http://localhost:5173 --incognito
+EOF
+
+# --- 7. Marcar como completado para que no se vuelva a ejecutar ---
+touch $FLAG_FILE
+
+echo "✅ Configuración completa. Reinicia tu Raspberry Pi para empezar a usar Mini ERP Plug & Play."
+
+
+...................
+NO RECURDO QUE HE HECHO AQUI MUCHOS CAMBIOS 
+(Algo de crear una base de datos en docker para probar en local en vez de todo en docker y conseguir que funcione en la raspberry 
+a medias porque la pi3b es limitada y se queda colgada)
+hay cambios en el front por ejemplo creamos un proxy inverso para poder conectarme a la api estando dentro del contenedor con su 
+red privada. posiblemente haga lo mismo al final para que los trabajadores accedan a la web por algo mehor que un localhost:5173
+...................
+
+creamos la api para user
+de aqui descbrimos mas cosas de nestjs como tipar el service y el controller para que evitar errores a la hora de compartir datos
+si se modifica el schema de la base de datos nos avisa si tenemos datos erroneos,
+ademas nos vale para evitar mandar usuarios con contraseña por accidente en la api, ponemos tras la funcion : Promise<PublicUser>
+y este es el que anteriormente pusimos que era un User sin el campo password. de esta manera se aumenta la seguridad.
+
+para el login del user creamos otro src de auth para comprobar si la contraseña es valida y generar un token para controlar el 
+acceso a la app con npm install @nestjs/jwt creamos los tokens
+
+
+para las ventas estaria bien añadir subtotal sin taxes toal con taxes a parte del total general.
+tambien hay que cambiar el saleID que tiene la S mayuscula de saleItem
+hacer el comprobarstock en sales por id o codigo de barras
+
+para cambios en prisma:
+
+npx prisma generate
+npx prisma db push --force-reset
+npx prisma db seed
+npx prisma studio
+
+añadi un script en package.json : "reset-db": "prisma generate && prisma db push --force-reset && prisma db seed && prisma studio"
+ahora solo hace falta npm run reset-db para ejecutar el reseteo de la base de datos con cambios en el schema
+asi funciona una de las caracteristicas de package.json
+
+arreglado saleID y añadido el subtotal y total con taxes para mayor comodidad en sales
+
+los token no funcionan pero bueno se arreglara mas adelante
+por ahora esta para que cualquier rol pueda hacer cualquier cosa
+posteriormente admin podra hacer consultas directas a la base de datos y el resto solo a las llamadas creadas para la app
+
+ahora la parte del frontend que no tengo ni idea de como funciona react
