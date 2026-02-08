@@ -1,12 +1,14 @@
 primero creamos el repo
 usamos nestJS para hacer las APIs: npm install -g @nestjs/cli
 creamos un proyecto de backend para la api con nest: nest new backend
+esto crea la carpeta del backend donde crearemos todas las apis y bases de datos
 seleccionamos npm como gestor de paquetes
 corremos la API: npm run start:dev 
 (entrando en localhost:3000 nos devuelve hello world! ya hay api)
 
 ahora frontend que usaremos react con vite 
 npm create vite@latest frontend -- --template react-ts
+esto tambien crea la carpeta del frontend
 iniciamos el frontend : npm run dev
 (podemos ver el frontend en localhost:5173)
 
