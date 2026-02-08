@@ -1,0 +1,200 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider  =  "postgresql"
+}
+
+model Cliente {
+  id       String  @id  @default(uuid())
+  nombre   String
+  correo   String?  @unique
+  telefono String?
+
+  ventas Venta[]
+}
+
+model Proveedor {
+  id              String   @id  @default(uuid())
+  nombre          String
+  correo          String?  @unique
+  telefono        String?
+  horarioEntrega  String?
+  descripcion     String?
+
+  compras Compra[]
+}
+
+model Empleado {
+  id         String   @id  @default(uuid())
+  localId    String
+  nombre     String
+  apellidos  String
+  correo     String   @unique
+  telefono   String?
+  dni        String   @unique
+  direccion  String
+  activo     Boolean  @default(true)
+  categoria  String
+
+  ventas     Venta[]
+  horarios   EmpleadoHorario[]
+  ausencias  EmpleadoAusencias[]
+  usuario    Usuario?
+  rrhh       EmpleadoRRHH?
+
+  local      Local   @relation(fields: [localId], references: [id])
+}
+
+model Local {
+  id               String  @id  @default(uuid())
+  nombre           String
+  correo           String?
+  telefono         String?
+  nif              String  @unique
+  direccion        String
+  horarioApertura  String?
+
+  empleados        Empleado[]
+  compras          Compra[]
+  ubicaciones      Ubicacion[]
+}
+
+model Producto {
+  id              String  @id  @default(uuid())
+  nombre          String
+  descripcion     String
+  tipo            String
+  porcentajeIVA   Float
+  precioBase      Float
+  expiracion      DateTime?
+
+  stocks          Stock[]
+  ventasDetalle   VentaDetalle[]
+  comprasDetalle  CompraDetalle[]
+}
+
+model Venta {
+  id          String    @id  @default(uuid())
+  empleadoId  String
+  clienteId   String?
+  fecha       DateTime  @default(now())
+  total       Float
+
+  detalles    VentaDetalle[]
+
+  empleado    Empleado  @relation(fields: [empleadoId], references: [id])
+  cliente     Cliente?   @relation(fields: [clienteId], references: [id])
+}
+
+model Compra {
+  id           String     @id  @default(uuid())
+  proveedorId  String
+  localId      String
+  fecha        DateTime   @default(now())
+  total        Float
+
+  detalles     CompraDetalle[]
+
+  proveedor    Proveedor  @relation(fields: [proveedorId], references: [id])
+  local        Local      @relation(fields: [localId], references:[id])
+}
+
+model Stock {
+  id           String    @id  @default(uuid())
+  productoId   String
+  ubicacionId  String
+  cantidad     Int
+  descuento    Float?
+  updatedAt    DateTime  @updatedAt
+
+  producto     Producto   @relation(fields: [productoId], references: [id])
+  ubicacion    Ubicacion  @relation(fields: [ubicacionId], references: [id])
+}
+
+model Ubicacion{
+  id           String  @id  @default(uuid())
+  localId      String
+  tipo         String  @default("almacen")
+  descripcion  String 
+
+  stocks       Stock[]
+
+  local        Local   @relation(fields: [localId], references: [id])
+}
+
+model Usuario{
+  id            String    @id  @default(uuid())
+  empleadoId    String    @unique
+  mail          String    @unique
+  passwordHash  String
+  rol           String    @default("ventas")
+  ultimoAcceso  DateTime  @default(now())
+
+  empleado      Empleado  @relation(fields: [empleadoId], references: [id])
+}
+
+model VentaDetalle{
+  ventaId       String
+  productoId    String
+  cantidad      Int
+  precioSinIVA  Float
+  precioFinal   Float
+
+  venta         Venta     @relation(fields: [ventaId], references: [id])
+  producto      Producto  @relation(fields: [productoId], references: [id])
+
+  @@id([ventaId, productoId])
+}
+
+model CompraDetalle{
+  compraId    String
+  productoId  String
+  cantidad    Int
+  precioLote  Float
+  
+  compra      Compra    @relation(fields: [compraId], references: [id])
+  producto    Producto  @relation(fields: [productoId], references: [id])
+
+  @@id([compraId, productoId])
+}
+
+model EmpleadoHorario{
+  id          String  @id  @default(uuid())
+  empleadoId  String  @unique
+  diaSemana   Int
+  horaInicio  String
+  horaFin     String
+
+  empleado      Empleado  @relation(fields: [empleadoId], references: [id])
+}
+
+model EmpleadoRRHH{
+  empleadoId             String  @id
+  salarioBase            Float
+  numPagas               Int
+  comision               Float?
+  fechaCobro             DateTime
+  fechaContrato          DateTime
+  irpf                   Float
+  numeroSeguridadSocial  String
+  iban                   String
+
+  empleado      Empleado  @relation(fields: [empleadoId], references: [id])
+}
+
+model EmpleadoAusencias{
+  id              String  @id  @default(uuid())
+  empleadoId      String
+  tipo            String
+  fechaInicio     DateTime
+  fechaFin        DateTime
+  observaciones  String?
+
+  empleado      Empleado  @relation(fields: [empleadoId], references: [id])
+}
