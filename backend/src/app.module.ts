@@ -16,9 +16,10 @@ import { VentaDetalleModule } from './venta-detalle/venta-detalle.module';
 import { CompraDetalleModule } from './compra-detalle/compra-detalle.module';
 import { EmpleadoHorarioModule } from './empleado-horario/empleado-horario.module';
 import { EmpleadoRrhhModule } from './empleado-rrhh/empleado-rrhh.module';
+import { EmpleadoAusenciasModule } from './empleado-ausencias/empleado-ausencia.module';
 
 @Module({
-  imports: [PrismaService, EmpleadoModule, ClienteModule, ProveedorModule, LocalModule, ProductoModule, VentaModule, CompraModule, StockModule, UbicacionModule, UsuarioModule, VentaDetalleModule, CompraDetalleModule, EmpleadoHorarioModule, EmpleadoRrhhModule],
+  imports: [PrismaService, EmpleadoModule, ClienteModule, ProveedorModule, LocalModule, ProductoModule, VentaModule, CompraModule, StockModule, UbicacionModule, UsuarioModule, VentaDetalleModule, CompraDetalleModule, EmpleadoHorarioModule, EmpleadoRrhhModule, EmpleadoAusenciasModule],
   controllers: [AppController],
   providers: [AppService],
 })

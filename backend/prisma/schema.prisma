@@ -44,7 +44,7 @@ model Empleado {
 
   ventas     Venta[]
   horarios   EmpleadoHorario[]
-  ausencias  EmpleadoAusencias[]
+  ausencias  EmpleadoAusencia[]
   usuario    Usuario?
   rrhh       EmpleadoRRHH?
 
@@ -188,7 +188,7 @@ model EmpleadoRRHH{
   empleado      Empleado  @relation(fields: [empleadoId], references: [id])
 }
 
-model EmpleadoAusencias{
+model EmpleadoAusencia{
   id              String  @id  @default(uuid())
   empleadoId      String
   tipo            String
