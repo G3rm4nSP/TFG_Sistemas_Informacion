@@ -17,18 +17,32 @@ export class VentaDetalleController {
     return this.ventaDetalleService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.ventaDetalleService.findOne(id);
+  @Get(':ventaId/:productoId')
+  findOne(
+    @Param('ventaId') ventaId: string,
+    @Param('productoId') productoId: string,
+  ) {
+    return this.ventaDetalleService.findOne(ventaId,productoId);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateVentaDetalleDto: UpdateVentaDetalleDto) {
-    return this.ventaDetalleService.update(id, updateVentaDetalleDto);
+  @Patch(':ventaId/:productoId')
+  update(
+    @Param('ventaId') ventaId: string,
+    @Param('productoId') productoId: string,
+    @Body() updateVentaDetalleDto: UpdateVentaDetalleDto,
+  ) {
+    return this.ventaDetalleService.update(
+      ventaId,
+      productoId,
+      updateVentaDetalleDto,
+    );
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.ventaDetalleService.remove(id);
+  @Delete(':ventaId/:productoId')
+  remove(
+    @Param('ventaId') ventaId: string,
+    @Param('productoId') productoId: string,
+  ) {
+    return this.ventaDetalleService.remove(ventaId,productoId);
   }
 }

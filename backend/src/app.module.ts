@@ -13,9 +13,10 @@ import { StockModule } from './stock/stock.module';
 import { UbicacionModule } from './ubicacion/ubicacion.module';
 import { UsuarioModule } from './usuario/usuario.module';
 import { VentaDetalleModule } from './venta-detalle/venta-detalle.module';
+import { CompraDetalleModule } from './compra-detalle/compra-detalle.module';
 
 @Module({
-  imports: [PrismaService, EmpleadoModule, ClienteModule, ProveedorModule, LocalModule, ProductoModule, VentaModule, CompraModule, StockModule, UbicacionModule, UsuarioModule, VentaDetalleModule],
+  imports: [PrismaService, EmpleadoModule, ClienteModule, ProveedorModule, LocalModule, ProductoModule, VentaModule, CompraModule, StockModule, UbicacionModule, UsuarioModule, VentaDetalleModule, CompraDetalleModule],
   controllers: [AppController],
   providers: [AppService],
 })
