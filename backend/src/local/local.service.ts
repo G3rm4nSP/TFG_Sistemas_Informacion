@@ -9,19 +9,11 @@ import { localSelect } from './local.select';
 @Injectable()
 export class LocalService {
   
-  constructor (private prisma: PrismaService) {}
+  constructor (private readonly prisma: PrismaService) {}
 
   async create(createLocalDto: CreateLocalDto) {
     
-    const local : Prisma.LocalCreateInput = {
-      nombre: createLocalDto.nombre,
-      correo: createLocalDto.correo,
-      telefono: createLocalDto.telefono,
-      nif: createLocalDto.nif,
-      direccion: createLocalDto.direccion,
-      horarioApertura: createLocalDto.horarioApertura,
-    };
-
+    const local : Prisma.LocalCreateInput = {... createLocalDto,};
     return this.prisma.local.create({data: local,select: localSelect,});
 
   }

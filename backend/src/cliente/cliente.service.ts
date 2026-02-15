@@ -9,17 +9,11 @@ import { clienteSelect } from './cliente.select';
 @Injectable()
 export class ClienteService {
 
-  constructor(private prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async create(createClienteDto: CreateClienteDto) {
   
-    const cliente : Prisma.ClienteCreateInput = {
-      nombre: createClienteDto.nombre,
-      apellidos: createClienteDto.apellidos,
-      correo: createClienteDto.correo,
-      telefono: createClienteDto.telefono,
-    };
-
+    const cliente : Prisma.ClienteCreateInput = {... createClienteDto,};
     return this.prisma.cliente.create({data: cliente, select: clienteSelect});
   
   }

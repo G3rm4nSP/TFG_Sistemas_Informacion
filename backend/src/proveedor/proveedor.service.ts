@@ -9,18 +9,11 @@ import { proveedorSelect } from './proveedor.select';
 @Injectable()
 export class ProveedorService {
 
-  constructor (private primsa: PrismaService) {}
+  constructor (private readonly primsa: PrismaService) {}
 
   async create(createProveedorDto: CreateProveedorDto) {
     
-    const proveedor : Prisma.ProveedorCreateInput = {
-      nombre: createProveedorDto.nombre,
-      correo: createProveedorDto.correo,
-      telefono: createProveedorDto.telefono,
-      horarioEntrega: createProveedorDto.horarioEntrega,
-      descripcion: createProveedorDto.descripcion,
-    };
-
+    const proveedor : Prisma.ProveedorCreateInput = {... createProveedorDto,};
     return this.primsa.proveedor.create({data: proveedor, select: proveedorSelect});
 
   }

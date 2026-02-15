@@ -9,22 +9,13 @@ import { Prisma } from '@prisma/client';
 @Injectable()
 export class EmpleadoService {
 
-  constructor(private prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-  async create (dto: CreateEmpleadoDto) {
+  async create (createEmpleadoDto: CreateEmpleadoDto) {
 
-    const empleado: Prisma.EmpleadoCreateInput = {
-      nombre: dto.nombre,
-      apellidos: dto.apellidos,
-      correo: dto.correo,
-      telefono: dto.telefono,
-      dni: dto.dni,
-      direccion: dto.direccion,
-      categoria: dto.categoria,
-      local: { connect: {id: dto.localId}},
-    };
-
+    const empleado: Prisma.EmpleadoCreateInput = {...createEmpleadoDto, local: { connect: {id: createEmpleadoDto.localId}},};
     return this.prisma.empleado.create({data: empleado,select: empleadoSelect});
+
   }
 
   async findAll(){
@@ -41,13 +32,13 @@ export class EmpleadoService {
 
   }
 
-  async update(id: string, dto: UpdateEmpleadoDto) {
+  async update(id: string, updateEmpleadoDto: UpdateEmpleadoDto) {
     
     try {
 
       const empleado: Prisma.EmpleadoUpdateInput = {
-        ...dto,
-        ...(dto.localId && {local: { connect: { id: dto.localId }}}),
+        ...updateEmpleadoDto,
+        ...(updateEmpleadoDto.localId && {local: { connect: { id: updateEmpleadoDto.localId }}}),
       }
 
       return await this.prisma.empleado.update({where: { id }, data: empleado, select: empleadoSelect});
