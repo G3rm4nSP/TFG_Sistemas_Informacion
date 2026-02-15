@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { NotFoundException } from '@nestjs/common';
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { CreateEmpleadoDto } from './dto/create-empleado.dto';
 import { UpdateEmpleadoDto } from './dto/update-empleado.dto';
 import { empleadoSelect } from './empleado.select';
@@ -51,10 +50,10 @@ export class EmpleadoService {
         ...(dto.localId && {local: { connect: { id: dto.localId }}}),
       }
 
-      return this.prisma.empleado.update({where: { id }, data: empleado, select: empleadoSelect});
+      return await this.prisma.empleado.update({where: { id }, data: empleado, select: empleadoSelect});
 
-    } catch (error) {
-      if (error.code === 'P2025') throw new NotFoundException('Empleado no encontrado');
+    } catch (error: any) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') throw new NotFoundException('Empleado no encontrado');
       throw error;
     }
 
@@ -64,10 +63,11 @@ export class EmpleadoService {
 
     try {
 
-      return this.prisma.empleado.delete({where: {id}, select: empleadoSelect});
+      return await this.prisma.empleado.delete({where: {id}, select: empleadoSelect});
 
-    } catch (error) {
-      if (error.code === 'P2025') throw new NotFoundException('Empleado no encontrado');
+    
+    } catch (error: any) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') throw new NotFoundException('Empleado no encontrado');
       throw error;
     }
   }

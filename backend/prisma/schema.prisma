@@ -10,10 +10,11 @@ datasource db {
 }
 
 model Cliente {
-  id       String  @id  @default(uuid())
-  nombre   String
-  correo   String?  @unique
-  telefono String?
+  id         String  @id  @default(uuid())
+  nombre     String
+  apellidos  String?
+  correo     String?  @unique
+  telefono   String?
 
   ventas Venta[]
 }
