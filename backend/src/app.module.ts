@@ -7,9 +7,10 @@ import { ClienteModule } from './cliente/cliente.module';
 import { ProveedorModule } from './proveedor/proveedor.module';
 import { LocalModule } from './local/local.module';
 import { ProductoModule } from './producto/producto.module';
+import { VentaModule } from './venta/venta.module';
 
 @Module({
-  imports: [PrismaService, EmpleadoModule, ClienteModule, ProveedorModule, LocalModule, ProductoModule],
+  imports: [PrismaService, EmpleadoModule, ClienteModule, ProveedorModule, LocalModule, ProductoModule, VentaModule],
   controllers: [AppController],
   providers: [AppService],
 })
