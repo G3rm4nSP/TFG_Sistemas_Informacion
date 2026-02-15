@@ -15,9 +15,10 @@ import { UsuarioModule } from './usuario/usuario.module';
 import { VentaDetalleModule } from './venta-detalle/venta-detalle.module';
 import { CompraDetalleModule } from './compra-detalle/compra-detalle.module';
 import { EmpleadoHorarioModule } from './empleado-horario/empleado-horario.module';
+import { EmpleadoRrhhModule } from './empleado-rrhh/empleado-rrhh.module';
 
 @Module({
-  imports: [PrismaService, EmpleadoModule, ClienteModule, ProveedorModule, LocalModule, ProductoModule, VentaModule, CompraModule, StockModule, UbicacionModule, UsuarioModule, VentaDetalleModule, CompraDetalleModule, EmpleadoHorarioModule],
+  imports: [PrismaService, EmpleadoModule, ClienteModule, ProveedorModule, LocalModule, ProductoModule, VentaModule, CompraModule, StockModule, UbicacionModule, UsuarioModule, VentaDetalleModule, CompraDetalleModule, EmpleadoHorarioModule, EmpleadoRrhhModule],
   controllers: [AppController],
   providers: [AppService],
 })
