@@ -43,7 +43,7 @@ export class UsuarioService {
         ...(updateUsuarioDto.empleadoId && {empleado: {connect: {id : updateUsuarioDto.empleadoId}}}),
       };
 
-      return this.prisma.usuario.update({where : {id}, data : usuario, select: usuarioSelect});
+      return await this.prisma.usuario.update({where : {id}, data : usuario, select: usuarioSelect});
 
     } catch (error : any) {
 
@@ -59,7 +59,7 @@ export class UsuarioService {
     
     try {
       
-      return this.prisma.usuario.delete({where : {id}, select: usuarioSelect});
+      return await this.prisma.usuario.delete({where : {id}, select: usuarioSelect});
 
     } catch (error : any) {
 

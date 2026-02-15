@@ -42,7 +42,7 @@ export class CompraDetalleService {
         ...(updateCompraDetalleDto.productoId && {producto: {connect : {id: updateCompraDetalleDto.productoId}}}),
       }
 
-      return this.prisma.compraDetalle.update({where : {compraId_productoId : {compraId, productoId}}, data: compraDetalle, select: compraDetalleSelect});
+      return await this.prisma.compraDetalle.update({where : {compraId_productoId : {compraId, productoId}}, data: compraDetalle, select: compraDetalleSelect});
       
     } catch (error : any) {
 
@@ -57,7 +57,7 @@ export class CompraDetalleService {
     
     try {
       
-      return this.prisma.compraDetalle.delete({where : {compraId_productoId : {compraId, productoId}}, select: compraDetalleSelect});
+      return await this.prisma.compraDetalle.delete({where : {compraId_productoId : {compraId, productoId}}, select: compraDetalleSelect});
       
     } catch (error : any) {
 

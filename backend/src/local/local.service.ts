@@ -37,7 +37,7 @@ export class LocalService {
     try {
 
       const local : Prisma.LocalUpdateInput = {...updateLocalDto,};
-      return this.prisma.local.update({where: {id}, data: local, select: localSelect,});
+      return await this.prisma.local.update({where: {id}, data: local, select: localSelect,});
     
     }catch (error : any){
       
@@ -52,7 +52,7 @@ export class LocalService {
     
     try {
 
-      return this.prisma.local.delete({where: {id}, select: localSelect,});
+      return await this.prisma.local.delete({where: {id}, select: localSelect,});
     
     }catch (error : any){
       

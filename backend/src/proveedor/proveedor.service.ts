@@ -26,7 +26,7 @@ export class ProveedorService {
 
   async findOne(id: string) {
 
-    const proveedor = this.primsa.proveedor.findUnique({where: {id}, select: proveedorSelect});
+    const proveedor = await this.primsa.proveedor.findUnique({where: {id}, select: proveedorSelect});
     if (!proveedor) throw new NotFoundException('Proveedor no encontrado');
     return proveedor; 
   
