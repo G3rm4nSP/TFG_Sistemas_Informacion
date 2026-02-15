@@ -49,7 +49,7 @@ export class StockService {
 
     } catch (error : any){
 
-      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') throw new NotFoundException('Venta no encontrada');
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') throw new NotFoundException('Stock no encontrado');
       throw error;
 
     }
@@ -64,7 +64,7 @@ export class StockService {
 
     } catch (error : any){
 
-      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') throw new NotFoundException('Venta no encontrada');
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') throw new NotFoundException('Stock no encontrado');
       throw error;
 
     }

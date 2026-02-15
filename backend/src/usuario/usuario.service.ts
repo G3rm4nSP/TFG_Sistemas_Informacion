@@ -47,7 +47,7 @@ export class UsuarioService {
 
     } catch (error : any) {
 
-      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') throw new NotFoundException('Venta no encontrada');
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') throw new NotFoundException('Usuario no encontrado');
       throw error;
 
     }
@@ -63,7 +63,7 @@ export class UsuarioService {
 
     } catch (error : any) {
 
-      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') throw new NotFoundException('Venta no encontrada');
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') throw new NotFoundException('Usuario no encontrado');
       throw error;
             
     }

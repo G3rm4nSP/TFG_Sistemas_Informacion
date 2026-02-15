@@ -41,7 +41,7 @@ export class LocalService {
     
     }catch (error : any){
       
-      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') throw new NotFoundException(`Local with ID ${id} not found`);
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') throw new NotFoundException('Local no encontrado');
       throw error;
     
     }
@@ -56,7 +56,7 @@ export class LocalService {
     
     }catch (error : any){
       
-      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') throw new NotFoundException(`Local with ID ${id} not found`);
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') throw new NotFoundException('Local no encontrado');
       throw error;
     
     }

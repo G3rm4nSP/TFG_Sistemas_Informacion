@@ -47,7 +47,7 @@ export class UbicacionService {
 
     }catch(error : any){
 
-      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') throw new NotFoundException('Venta no encontrada');
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') throw new NotFoundException('Ubicacion no encontrada');
       throw error;
 
     }
@@ -60,7 +60,7 @@ export class UbicacionService {
 
     }catch(error : any){
 
-      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') throw new NotFoundException('Venta no encontrada');
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') throw new NotFoundException('Ubicacion no encontrada');
       throw error;
 
     }
