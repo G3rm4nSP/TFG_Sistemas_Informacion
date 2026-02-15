@@ -7,4 +7,4 @@ export const productoSelect = {
     tipo: true,
     porcentajeIva: true,
     precioBase: true,
-    expiracion: true,} as Prisma.ProductoSelect;
+    expiracion: true,} satisfies Prisma.ProductoSelect;

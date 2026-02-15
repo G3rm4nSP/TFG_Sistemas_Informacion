@@ -6,4 +6,4 @@ export const compraSelect = {
     localId: true,
     fecha: true,
     total: true,
-} as Prisma.CompraSelect;
+} satisfies Prisma.CompraSelect;

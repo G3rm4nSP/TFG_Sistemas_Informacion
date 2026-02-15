@@ -8,4 +8,4 @@ export const localSelect = {
     nif: true,
     direccion: true,
     horarioApertura: true,
-} as Prisma.LocalSelect;
+} satisfies Prisma.LocalSelect;

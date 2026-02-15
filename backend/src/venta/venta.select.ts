@@ -6,4 +6,4 @@ export const ventaSelect = {
     clienteId: true,
     fecha: true,
     total: true,
-} as Prisma.VentaSelect;
+} satisfies Prisma.VentaSelect;

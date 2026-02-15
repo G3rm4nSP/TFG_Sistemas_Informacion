@@ -5,4 +5,4 @@ export const ubicacionSelect = {
     loclalId : true,
     tipo : true,
     descripcion : true,
-} as Prisma.UbicacionSelect;
+} satisfies Prisma.UbicacionSelect;

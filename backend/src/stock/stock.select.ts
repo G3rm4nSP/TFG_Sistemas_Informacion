@@ -7,4 +7,4 @@ export const stockSelect = {
     cantidad: true,
     descuneto: true,
     updatedAt: true,
-} as Prisma.StockSelect;
+} satisfies Prisma.StockSelect;

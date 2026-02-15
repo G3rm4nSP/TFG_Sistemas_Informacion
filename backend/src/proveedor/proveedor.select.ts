@@ -9,4 +9,4 @@ export const proveedorSelect = {
     horarioEntrega: true,
     descripcion: true,
 
-} as Prisma.ProveedorSelect;
+} satisfies Prisma.ProveedorSelect;
