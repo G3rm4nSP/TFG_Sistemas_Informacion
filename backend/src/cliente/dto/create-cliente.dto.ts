@@ -1,5 +1,5 @@
 export class CreateClienteDto {
-    nombre: string;
+    nombre!: string;
     apellidos?: string;
     correo?: string;
     telefono?: string;

@@ -14,10 +14,11 @@ export class VentaService {
 
   async create(createVentaDto: CreateVentaDto) {
     
+    const {empleadoId, clienteId, ...rest} = createVentaDto;
     const venta : Prisma.VentaCreateInput = {
-      ...createVentaDto,
-      empleado: {connect: {id: createVentaDto.empleadoId}},
-      cliente: {connect: {id: createVentaDto.clienteId}},
+      ...rest,
+      empleado: {connect: {id: empleadoId}},
+      cliente: {connect: {id: clienteId}},
     };
 
     return this.prisma.venta.create({data: venta, select: ventaSelect});
@@ -42,10 +43,11 @@ export class VentaService {
     
     try{
 
+      const {empleadoId, clienteId, ...rest} = updateVentaDto;
       const venta: Prisma.VentaUpdateInput = {
-        ...updateVentaDto,
-        ...(updateVentaDto.empleadoId && {empleado: { connect: { id: updateVentaDto.empleadoId }}}),
-        ...(updateVentaDto.clienteId && {cliente: { connect: { id: updateVentaDto.clienteId }}}),
+        ...rest,
+        ...(empleadoId && {empleado: { connect: { id: empleadoId }}}),
+        ...(clienteId && {cliente: { connect: { id: clienteId }}}),
       }
 
       return await this.prisma.venta.update({where: {id}, data: venta, select: ventaSelect});

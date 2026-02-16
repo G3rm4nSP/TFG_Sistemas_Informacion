@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { CreateCompraDetalleDto } from './dto/create-compra-detalle.dto';
 import { UpdateCompraDetalleDto } from './dto/update-compra-detalle.dto';
 import { compraDetalleSelect } from './compra-detalle.select';
@@ -13,10 +13,12 @@ export class CompraDetalleService {
 
   async create(createCompraDetalleDto: CreateCompraDetalleDto) {
     
+    const {compraId, productoId, ...rest } = createCompraDetalleDto;
+
     const compraDetalle : Prisma.CompraDetalleCreateInput = {
-      ...createCompraDetalleDto,
-      compra: {connect : { id : createCompraDetalleDto.compraId}},
-      producto: {connect: {id : createCompraDetalleDto.productoId}},
+      ...rest,
+      compra: {connect : { id : compraId}},
+      producto: {connect: {id : productoId}},
     }
 
     return this.prisma.compraDetalle.create({data: compraDetalle, select: compraDetalleSelect});
@@ -36,10 +38,10 @@ export class CompraDetalleService {
     
     try {
       
+      const {compraId : c, productoId : p, ...rest } = updateCompraDetalleDto;
+
       const compraDetalle : Prisma.CompraDetalleUpdateInput= {
-        ...updateCompraDetalleDto,
-        ...(updateCompraDetalleDto.compraId && {compra: {connect: {id : updateCompraDetalleDto.compraId}}}),
-        ...(updateCompraDetalleDto.productoId && {producto: {connect : {id: updateCompraDetalleDto.productoId}}}),
+        ...rest,
       }
 
       return await this.prisma.compraDetalle.update({where : {compraId_productoId : {compraId, productoId}}, data: compraDetalle, select: compraDetalleSelect});

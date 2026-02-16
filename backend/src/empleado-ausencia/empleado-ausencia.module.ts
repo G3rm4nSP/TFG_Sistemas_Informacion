@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { EmpleadoAusenciaService } from './empleado-ausencia.service';
 import { EmpleadoAusenciaController } from './empleado-ausencia.controller';
-import { PrismaModule } from 'src/prisma/prisma.module';
+import { PrismaModule } from '../prisma/prisma.module';
 @Module({
   controllers: [EmpleadoAusenciaController],
   providers: [EmpleadoAusenciaService],

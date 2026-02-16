@@ -5,6 +5,6 @@ export const productoSelect = {
     nombre: true,
     descripcion: true,
     tipo: true,
-    porcentajeIva: true,
+    porcentajeIVA: true,
     precioBase: true,
     expiracion: true,} satisfies Prisma.ProductoSelect;

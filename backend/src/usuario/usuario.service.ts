@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { CreateUsuarioDto } from './dto/create-usuario.dto';
 import { UpdateUsuarioDto } from './dto/update-usuario.dto';
-import { ubicacionSelect } from 'src/ubicacion/ubicacion.select';
+import { ubicacionSelect } from '../ubicacion/ubicacion.select';
 import { usuarioSelect } from './usuario.select';
 
 @Injectable()
@@ -14,9 +14,10 @@ export class UsuarioService {
 
   async create(createUsuarioDto: CreateUsuarioDto) {
     
+    const {empleadoId, ...rest} = createUsuarioDto;
     const usuario : Prisma.UsuarioCreateInput = {
-      ...createUsuarioDto,
-      empleado : {connect :{id : createUsuarioDto.empleadoId}},
+      ...rest,
+      empleado : {connect :{id : empleadoId}},
     };
 
     return this.prisma.usuario.create({data: usuario, select: usuarioSelect});
@@ -38,10 +39,8 @@ export class UsuarioService {
     
     try {
       
-      const usuario : Prisma.UsuarioUpdateInput = {
-        ...updateUsuarioDto,
-        ...(updateUsuarioDto.empleadoId && {empleado: {connect: {id : updateUsuarioDto.empleadoId}}}),
-      };
+      const {empleadoId, ...rest} = updateUsuarioDto;
+      const usuario : Prisma.UsuarioUpdateInput = {...rest,};
 
       return await this.prisma.usuario.update({where : {id}, data : usuario, select: usuarioSelect});
 

@@ -5,6 +5,6 @@ export const stockSelect = {
     productoId: true,
     ubicacionId: true,
     cantidad: true,
-    descuneto: true,
+    descuento: true,
     updatedAt: true,
 } satisfies Prisma.StockSelect;

@@ -13,7 +13,8 @@ export class EmpleadoService {
 
   async create (createEmpleadoDto: CreateEmpleadoDto) {
 
-    const empleado: Prisma.EmpleadoCreateInput = {...createEmpleadoDto, local: { connect: {id: createEmpleadoDto.localId}},};
+    const { localId, ...rest } = createEmpleadoDto;
+    const empleado: Prisma.EmpleadoCreateInput = {...rest, local: { connect: {id: localId}},};
     return this.prisma.empleado.create({data: empleado,select: empleadoSelect});
 
   }
@@ -36,9 +37,11 @@ export class EmpleadoService {
     
     try {
 
+      const { localId, ...rest } = updateEmpleadoDto;
+
       const empleado: Prisma.EmpleadoUpdateInput = {
-        ...updateEmpleadoDto,
-        ...(updateEmpleadoDto.localId && {local: { connect: { id: updateEmpleadoDto.localId }}}),
+        ...rest,
+        ...(localId && {local: { connect: { id: localId }}}),
       }
 
       return await this.prisma.empleado.update({where: { id }, data: empleado, select: empleadoSelect});

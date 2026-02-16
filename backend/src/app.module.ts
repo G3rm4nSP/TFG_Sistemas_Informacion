@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { PrismaService } from './prisma/prisma.service';
+import { PrismaModule } from './prisma/prisma.module';
 import { EmpleadoModule } from './empleado/empleado.module';
 import { ClienteModule } from './cliente/cliente.module';
 import { ProveedorModule } from './proveedor/proveedor.module';
@@ -16,10 +16,27 @@ import { VentaDetalleModule } from './venta-detalle/venta-detalle.module';
 import { CompraDetalleModule } from './compra-detalle/compra-detalle.module';
 import { EmpleadoHorarioModule } from './empleado-horario/empleado-horario.module';
 import { EmpleadoRrhhModule } from './empleado-rrhh/empleado-rrhh.module';
-import { EmpleadoAusenciasModule } from './empleado-ausencias/empleado-ausencia.module';
+import { EmpleadoAusenciaModule } from './empleado-ausencia/empleado-ausencia.module';
 
 @Module({
-  imports: [PrismaService, EmpleadoModule, ClienteModule, ProveedorModule, LocalModule, ProductoModule, VentaModule, CompraModule, StockModule, UbicacionModule, UsuarioModule, VentaDetalleModule, CompraDetalleModule, EmpleadoHorarioModule, EmpleadoRrhhModule, EmpleadoAusenciasModule],
+  imports: [
+    PrismaModule,
+    EmpleadoModule,
+    ClienteModule,
+    ProveedorModule, 
+    LocalModule, 
+    ProductoModule, 
+    VentaModule, 
+    CompraModule, 
+    StockModule, 
+    UbicacionModule, 
+    UsuarioModule, 
+    VentaDetalleModule, 
+    CompraDetalleModule, 
+    EmpleadoHorarioModule, 
+    EmpleadoRrhhModule, 
+    EmpleadoAusenciaModule
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

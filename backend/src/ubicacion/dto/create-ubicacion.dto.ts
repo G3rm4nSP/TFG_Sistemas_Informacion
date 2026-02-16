@@ -1,5 +1,5 @@
 export class CreateUbicacionDto {
-    localId : string;
-    tipo : string;
-    descripcion;
+    localId! : string;
+    tipo! : string;
+    descripcion!: string;
 }

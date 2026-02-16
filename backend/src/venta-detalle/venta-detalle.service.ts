@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { CreateVentaDetalleDto } from './dto/create-venta-detalle.dto';
 import { UpdateVentaDetalleDto } from './dto/update-venta-detalle.dto';
 import { ventaDetalleSelect } from './venta-detalle.select';
@@ -13,10 +13,11 @@ export class VentaDetalleService {
 
   async create(createVentaDetalleDto: CreateVentaDetalleDto) {
     
+    const {ventaId, productoId, ...rest} = createVentaDetalleDto;
     const ventaDetalle : Prisma.VentaDetalleCreateInput = {
-      ...createVentaDetalleDto,
-      venta : {connect : {id : createVentaDetalleDto.ventaId}},
-      producto : {connect : { id : createVentaDetalleDto.productoId}}, 
+      ...rest,
+      venta : {connect : {id : ventaId}},
+      producto : {connect : { id : productoId}}, 
     };
 
     return this.prisma.ventaDetalle.create({data: ventaDetalle, select: ventaDetalleSelect});
@@ -39,11 +40,8 @@ export class VentaDetalleService {
     
     try {
 
-      const ventaDetalle : Prisma.VentaDetalleUpdateInput = {
-        ...updateVentaDetalleDto,
-        ...(updateVentaDetalleDto.ventaId && {venta: {connect : {id : updateVentaDetalleDto.ventaId}}}),
-        ...(updateVentaDetalleDto.productoId && {producto: {connect : {id : updateVentaDetalleDto.productoId}}}),
-      }
+      const {ventaId:v, productoId:p, ...rest} = updateVentaDetalleDto;
+      const ventaDetalle : Prisma.VentaDetalleUpdateInput = { ...rest,};
       
       return await this.prisma.ventaDetalle.update({where : {ventaId_productoId : {ventaId, productoId}}, data: ventaDetalle, select: ventaDetalleSelect});
 

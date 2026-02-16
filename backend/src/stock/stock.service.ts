@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { CreateStockDto } from './dto/create-stock.dto';
 import { UpdateStockDto } from './dto/update-stock.dto';
 import { stockSelect } from './stock.select';
@@ -14,10 +14,11 @@ export class StockService {
 
   async create(createStockDto: CreateStockDto) {
     
+    const {productoId, ubicacionId, ...rest} = createStockDto;
     const stock : Prisma.StockCreateInput = {
-      ...createStockDto,
-      producto: {connect: {id: createStockDto.productoId}},
-      ubicacion: {connect: {id: createStockDto.ubicacionId}},
+      ...rest,
+      producto: {connect: {id: productoId}},
+      ubicacion: {connect: {id: ubicacionId}},
     };
 
     return this.prisma.stock.create ({data:stock, select: stockSelect});
@@ -39,10 +40,11 @@ export class StockService {
 
     try {
 
+      const {productoId, ubicacionId, ...rest} = updateStockDto;
       const stock : Prisma.StockUpdateInput = {
-        ...updateStockDto,
-        ...(updateStockDto.productoId && {producto: {connect: {id : updateStockDto.productoId}}}),
-        ...(updateStockDto.ubicacionId && {ubicacion: {connect: {id : updateStockDto.ubicacionId}}}),
+        ...rest,
+        ...(productoId && {producto: {connect: {id : productoId}}}),
+        ...(ubicacionId && {ubicacion: {connect: {id : ubicacionId}}}),
       };
 
       return await this.prisma.stock.update({ where:{id},data: stock, select: stockSelect,});

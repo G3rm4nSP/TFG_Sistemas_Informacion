@@ -13,10 +13,12 @@ export class CompraService {
   
   async create(createCompraDto: CreateCompraDto) {
     
+    const { proveedorId, localId, ...rest } = createCompraDto;
+
     const compra : Prisma.CompraCreateInput = {
-      ...createCompraDto,
-      proveedor: {connect: {id: createCompraDto.proveedorId}},
-      local: {connect: {id: createCompraDto.localId}},
+      ...rest,
+      proveedor: {connect: {id: proveedorId}},
+      local: {connect: {id: localId}},
     };
 
     return this.prisma.compra.create({data: compra, select: compraSelect});
@@ -37,10 +39,12 @@ export class CompraService {
     
     try{
     
+      const { proveedorId, localId, ...rest } = updateCompraDto;
+
       const compra : Prisma.CompraUpdateInput = {
-        ...updateCompraDto,
-        ...(updateCompraDto.proveedorId && {proveedor: { connect: { id: updateCompraDto.proveedorId }}}),
-        ...(updateCompraDto.localId && {local: { connect: { id: updateCompraDto.localId }}}),
+        ...rest,
+        ...(proveedorId && {proveedor: { connect: { id: proveedorId }}}),
+        ...(localId && {local: { connect: { id: localId }}}),
       };
       return await this.prisma.compra.update({where: {id}, data: compra, select: compraSelect});
     

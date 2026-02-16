@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { CreateUbicacionDto } from './dto/create-ubicacion.dto';
 import { UpdateUbicacionDto } from './dto/update-ubicacion.dto';
 import { ubicacionSelect } from './ubicacion.select';
@@ -13,9 +13,10 @@ export class UbicacionService {
 
   async create(createUbicacionDto: CreateUbicacionDto) {
     
+    const {localId, ...rest} = createUbicacionDto;
     const ubicacion : Prisma.UbicacionCreateInput = {
-      ...createUbicacionDto,
-      local: {connect: {id: createUbicacionDto.localId}},
+      ...rest,
+      local: {connect: {id: localId}},
     };
 
     return this.prisma.ubicacion.create({data: ubicacion, select: ubicacionSelect});
@@ -38,9 +39,10 @@ export class UbicacionService {
   async update(id: string, updateUbicacionDto: UpdateUbicacionDto) {
     try{
 
+      const {localId, ...rest} = updateUbicacionDto;
       const ubicacion : Prisma.UbicacionUpdateInput = {
-        ...updateUbicacionDto,
-        ...(updateUbicacionDto.localId && {local : {connect: {id : updateUbicacionDto.localId}}}),
+        ...rest,
+        ...(localId && {local : {connect: {id : localId}}}),
       };
 
       return await this.prisma.ubicacion.update({where:{id},data:ubicacion,select:ubicacionSelect});

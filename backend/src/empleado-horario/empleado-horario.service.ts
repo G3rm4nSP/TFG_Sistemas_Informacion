@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { CreateEmpleadoHorarioDto } from './dto/create-empleado-horario.dto';
 import { UpdateEmpleadoHorarioDto } from './dto/update-empleado-horario.dto';
 import { empleadoHorarioSelect } from './empleado-horario.select';
@@ -13,9 +13,11 @@ export class EmpleadoHorarioService {
 
   async create(createEmpleadoHorarioDto: CreateEmpleadoHorarioDto) {
     
+    const {empleadoId, ...rest} = createEmpleadoHorarioDto;
+
     const empleadoHorario : Prisma.EmpleadoHorarioCreateInput = {
-      ...createEmpleadoHorarioDto,
-      empleado: {connect : {id : createEmpleadoHorarioDto.empleadoId}},
+      ...rest,
+      empleado: {connect : {id : empleadoId}},
     };
 
     return this.prisma.empleadoHorario.create({data: empleadoHorario, select: empleadoHorarioSelect});
@@ -28,15 +30,18 @@ export class EmpleadoHorarioService {
 
   async findOne(id: string) {
     const empleadoHorario = await this.prisma.empleadoHorario.findUnique({where : {id}, select: empleadoHorarioSelect});
+    if (!empleadoHorario) throw new NotFoundException ('Horario de empleado no encontrado');
+    return empleadoHorario;
   }
 
   async update(id: string, updateEmpleadoHorarioDto: UpdateEmpleadoHorarioDto) {
     
     try {
 
+      const {empleadoId, ...rest} = updateEmpleadoHorarioDto;
       const empleadoHorario : Prisma.EmpleadoHorarioUpdateInput = {
-        ...updateEmpleadoHorarioDto,
-        ...(updateEmpleadoHorarioDto.empleadoId && {empleado: {connect : {id : updateEmpleadoHorarioDto.empleadoId}}})
+        ...rest,
+        ...(empleadoId && {empleado: {connect : {id : empleadoId}}})
       };
 
       return await this.prisma.empleadoHorario.update({where: {id}, data: empleadoHorario, select: empleadoHorarioSelect});
