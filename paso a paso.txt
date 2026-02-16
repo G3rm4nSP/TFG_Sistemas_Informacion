@@ -23,7 +23,7 @@ ahora abrimos y configuramos "backend/prisma/schema.prisma" para definir nuestra
 creamos usuario y producto para empezar con algo basico
 Creamos el cliente que usaremos desde nestJS para hacer CRUD : npx prisma generate
 para crear la base de datos y la tabla devinida en el .env que se hace referencia en el schema.prisma,
-asi como las tablas de cliente y usuario o las definidas en el schema: npx prisma db push
+asi como las tablas de cliente y usuario o las definidas en el schema: npx prisma migrate dev --name init
 
 prueba de la base de datos con nestJS editamos el archivo service del src, aqui hay lo tipico, modelo, serviio, controlador, main y controlador.spec que hay que ver que es
 editamos el mensaje de hello world con el numero de usuarios en nuestra base de datos, para ello también primero creamos el prisma.service y prisma.module para poder acceder desde cualquier servicio:
