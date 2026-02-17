@@ -2,7 +2,10 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { EmpleadoRrhhService } from './empleado-rrhh.service';
 import { CreateEmpleadoRrhhDto } from './dto/create-empleado-rrhh.dto';
 import { UpdateEmpleadoRrhhDto } from './dto/update-empleado-rrhh.dto';
+import { UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
+@UseGuards(JwtAuthGuard)
 @Controller('empleado-rrhh')
 export class EmpleadoRrhhController {
   constructor(private readonly empleadoRrhhService: EmpleadoRrhhService) {}

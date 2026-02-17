@@ -17,6 +17,7 @@ import { CompraDetalleModule } from './compra-detalle/compra-detalle.module';
 import { EmpleadoHorarioModule } from './empleado-horario/empleado-horario.module';
 import { EmpleadoRrhhModule } from './empleado-rrhh/empleado-rrhh.module';
 import { EmpleadoAusenciaModule } from './empleado-ausencia/empleado-ausencia.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -35,7 +36,7 @@ import { EmpleadoAusenciaModule } from './empleado-ausencia/empleado-ausencia.mo
     CompraDetalleModule, 
     EmpleadoHorarioModule, 
     EmpleadoRrhhModule, 
-    EmpleadoAusenciaModule
+    EmpleadoAusenciaModule, AuthModule
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -2,7 +2,10 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { VentaDetalleService } from './venta-detalle.service';
 import { CreateVentaDetalleDto } from './dto/create-venta-detalle.dto';
 import { UpdateVentaDetalleDto } from './dto/update-venta-detalle.dto';
+import { UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
+@UseGuards(JwtAuthGuard)
 @Controller('venta-detalle')
 export class VentaDetalleController {
   constructor(private readonly ventaDetalleService: VentaDetalleService) {}

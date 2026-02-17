@@ -6,4 +6,7 @@ export const usuarioSelect = {
     mail : true,
     rol : true,
     ultimoAcceso : true,
+    activo : true,
+    intentosFallidos : true,
+    bloqueadoHasta : true,
 } satisfies Prisma.UsuarioSelect;
