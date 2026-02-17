@@ -64,7 +64,7 @@ export default function Employees() {
   };
 
   return (
-    <Container>
+    <Container> 
       <Button onClick={() => navigate("/")}>Volver</Button>
 
       <Typography variant="h4" sx={{ marginBottom: 3 }}>
