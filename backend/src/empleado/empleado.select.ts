@@ -11,4 +11,18 @@ export const empleadoSelect = {
   activo: true,
   categoria: true,
   localId: true,
+  rrhh: {
+    select:{
+      empleadoId : true,
+      salarioBase : true,
+      numPagas : true,
+      comision : true,
+      fechaCobro : true,
+      fechaContrato : true,
+      irpf : true,
+      numeroSeguridadSocial: true,
+      iban : true,
+    }
+  }
+
 } satisfies Prisma.EmpleadoSelect;

@@ -11,6 +11,10 @@ export default function Home() {
       </Typography>
 
       <Stack spacing={2}>
+        <Button variant="contained" onClick={() => navigate("/login")}>
+          Login
+        </Button>
+        
         <Button variant="contained" onClick={() => navigate("/empleados")}>
           Gestión de Empleados
         </Button>

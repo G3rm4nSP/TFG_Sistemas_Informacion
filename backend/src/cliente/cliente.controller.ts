@@ -17,6 +17,7 @@ export class ClienteController {
     return this.clienteService.create(createClienteDto);
   }
 
+  @Roles('ADMIN')
   @Get()
   findAll() {
     return this.clienteService.findAll();

@@ -1,10 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { NotFoundException } from '@nestjs/common';
 import { CreateEmpleadoDto } from './dto/create-empleado.dto';
 import { UpdateEmpleadoDto } from './dto/update-empleado.dto';
 import { empleadoSelect } from './empleado.select';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma } from '@prisma/client';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class EmpleadoService {
@@ -13,21 +14,148 @@ export class EmpleadoService {
 
   async create (createEmpleadoDto: CreateEmpleadoDto) {
 
-    const { localId, ...rest } = createEmpleadoDto;
-    const empleado: Prisma.EmpleadoCreateInput = {...rest, local: { connect: {id: localId}},};
-    return this.prisma.empleado.create({data: empleado,select: empleadoSelect});
+    try {
+      const claverRandom = Array.from({ length: 10 }, () => {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        return chars[Math.floor(Math.random() * chars.length)];
+      }).join('');
+
+      const passwordHash = await bcrypt.hash(claverRandom, 10)
+      
+      const { 
+        localId,
+        salarioBase,
+        numPagas,
+        comision,
+        fechaCobro,
+        fechaContrato,
+        irpf,
+        numeroSeguridadSocial,
+        iban,
+        mail,
+        rol,
+          ...rest 
+        } = createEmpleadoDto;
+
+      const correoEmpresa = mail || createEmpleadoDto.correo;
+
+      const empleado: Prisma.EmpleadoCreateInput = {
+        ...rest,
+        rrhh: {
+          create : {
+            salarioBase,
+            numPagas,
+            comision,
+            fechaCobro,
+            fechaContrato,
+            irpf,
+            numeroSeguridadSocial,
+            iban,
+          }
+        },
+        usuario: {
+          create : {
+            mail : correoEmpresa,
+            passwordHash,
+            rol : rol,
+            activo: true,
+            intentosFallidos : 0,
+          }
+        },
+        local: { connect: {id: localId}},
+      };
+      
+      const empleadoCreado = await this.prisma.empleado.create({data: empleado, select: empleadoSelect});
+      
+      return  {...empleadoCreado, correoEmpresa, claverRandom}
+
+    } catch (error : any) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        // Unique constraint failed
+        if (error.code === 'P2002') {
+          const target = (error.meta?.target as string[])?.join(', ') || 'campo único';
+          throw new ConflictException(`Ya existe un registro con ${target}`);
+        }
+      }
+      // Otros errores inesperados
+      throw new InternalServerErrorException(error.message);
+    }
+    
+  }
+
+  async findAll(rol : string){
+
+    const baseSelect = {
+      id: true,
+      nombre: true,
+      apellidos: true,
+      correo: true,
+      telefono: true,
+      dni: true,
+      direccion: true,
+      activo: true,
+      categoria: true,
+      localId: true,
+    };
+
+    let select;
+
+    if (rol === 'RRHH') {
+      select = { ...baseSelect, rrhh: empleadoSelect.rrhh };
+
+    } else if (rol === 'JEFE') {
+      select = baseSelect; 
+
+    } else {
+      select = {
+        id: true,
+        localId: true,
+        nombre: true,
+        apellidos: true,
+        correo: true,
+        categoria: true 
+      };
+    }
+
+    return this.prisma.empleado.findMany({select: select});
 
   }
 
-  async findAll(){
+  async findOne(id: string, rol : string, usuarioId : string) {
 
-    return this.prisma.empleado.findMany({select: empleadoSelect});
+     const baseSelect = {
+      id: true,
+      nombre: true,
+      apellidos: true,
+      correo: true,
+      telefono: true,
+      dni: true,
+      direccion: true,
+      activo: true,
+      categoria: true,
+      localId: true,
+    };
 
-  }
+    let select;
 
-  async findOne(id: string) {
+    if (rol === 'RRHH' || usuarioId === id) {
+      select = { ...baseSelect, rrhh: empleadoSelect.rrhh };
 
-    const empleado = await this.prisma.empleado.findUnique({where: {id}, select: empleadoSelect});
+    } else if (rol === 'JEFE') {
+      select = baseSelect; 
+
+    } else {
+      select = {
+        id: true,
+        localId: true,
+        nombre: true,
+        apellidos: true,
+        correo: true,
+        categoria: true 
+      };
+    }
+
+    const empleado = await this.prisma.empleado.findUnique({where: {id}, select: select});
     if (!empleado) throw new NotFoundException('Empleado no encontrado');
     return empleado;
 
@@ -37,11 +165,34 @@ export class EmpleadoService {
     
     try {
 
-      const { localId, ...rest } = updateEmpleadoDto;
+      const { 
+        localId,
+        salarioBase,
+        numPagas,
+        comision,
+        fechaCobro,
+        fechaContrato,
+        irpf,
+        numeroSeguridadSocial,
+        iban,
+        ...rest 
+      } = updateEmpleadoDto;
 
       const empleado: Prisma.EmpleadoUpdateInput = {
         ...rest,
         ...(localId && {local: { connect: { id: localId }}}),
+        rrhh: {
+          update: {
+            ...(salarioBase !== undefined && { salarioBase }),
+            ...(numPagas !== undefined && { numPagas }),
+            ...(comision !== undefined && { comision }),
+            ...(fechaCobro && { fechaCobro }),
+            ...(fechaContrato && { fechaContrato }),
+            ...(irpf !== undefined && { irpf }),
+            ...(numeroSeguridadSocial && { numeroSeguridadSocial }),
+            ...(iban && { iban }),
+          }
+        }
       }
 
       return await this.prisma.empleado.update({where: { id }, data: empleado, select: empleadoSelect});
@@ -57,7 +208,7 @@ export class EmpleadoService {
 
     try {
 
-      return await this.prisma.empleado.delete({where: {id}, select: empleadoSelect});
+      return await this.prisma.empleado.update({where: {id},data: {activo:false}, select: empleadoSelect});
 
     
     } catch (error: any) {

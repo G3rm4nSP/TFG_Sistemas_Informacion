@@ -13,47 +13,101 @@ import {
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
-interface Employee {
+interface Empleado {
   id: string;
+  localId :string;
   nombre: string;
   apellidos: string;
   correo: string;
   telefono: string | null;
+  dni : string;
+  direccion : string;
+  activo : boolean;
+  categoria : string;
 }
 
-export default function Employees() {
+interface EmpleadoRRHH {
+  empleadoId: string;
+  salarioBase: number;
+  numPagas: number;
+  comision: number;
+  fechaCobro: Date;
+  fechaContrato: Date;
+  irpf: string;
+  numeroSeguridadSocial: string;
+  iban: string;
+}
+
+export default function Empleados() {
   const navigate = useNavigate();
 
-  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [empleados, setEmpleados] = useState<Empleado[]>([]);
+  const [empleadosRRHH, setEmpleadosRRHH] = useState<EmpleadoRRHH[]>([]);
+  
+  const [localId, setLocalId] = useState("");
   const [nombre, setNombre] = useState("");
   const [apellidos, setApellidos] = useState("");
   const [correo, setCorreo] = useState("");
   const [telefono, setTelefono] = useState("");
+  const [dni, setDni] = useState("");
+  const [direccion, setDireccion] = useState("");
+  const [activo, setActivo] = useState(true);
+  const [categoria, setCategoria] = useState("");
 
-  const fetchEmployees = async () => {
+  const[empleadoId, setEmpleadoId] = useState(localId);
+  const[salarioBase, setSalarioBase] = useState("")
+
+  const fetchEmpleados = async () => {
     const res = await api.get("/empleado");
-    setEmployees(res.data);
+    setEmpleados(res.data);
+  };
+
+  const fetchEmpleadosRRHH = async () => {
+    const res = await api.get("/empleado-rrhh");
+    setEmpleadosRRHH(res.data);
   };
 
   useEffect(() => {
-    fetchEmployees();
+    fetchEmpleados();
   }, []);
 
-  const addEmployee = async () => {
+  const addEmpleado = async () => {
     await api.post("/empleado", {
+      localId,
       nombre,
       apellidos,
       correo,
       telefono: telefono || null,
+      dni,
+      direccion,
+      activo,
+      categoria,
     });
 
     resetForm();
-    fetchEmployees();
+    fetchEmpleados();
   };
 
-  const deleteEmployee = async (id: string) => {
+  const editEmpleado = async () => {
+    await api.post("/empleado", {
+      localId,
+      nombre,
+      apellidos,
+      correo,
+      telefono: telefono || null,
+      dni,
+      direccion,
+      activo,
+      categoria,
+    });
+
+    resetForm();
+    fetchEmpleados();
+  };
+
+  const deleteEmpleado = async (id: string) => {
     await api.delete(`/empleado/${id}`);
-    fetchEmployees();
+    fetchEmpleados();
   };
 
   const resetForm = () => {
@@ -65,7 +119,7 @@ export default function Employees() {
 
   return (
     <Container> 
-      <Button onClick={() => navigate("/")}>Volver</Button>
+      <Button onClick={() => navigate("/home")}>Volver</Button>
 
       <Typography variant="h4" sx={{ marginBottom: 3 }}>
         Gestión de Empleados
@@ -101,7 +155,7 @@ export default function Employees() {
           sx={{ marginRight: 2 }}
         />
 
-        <Button variant="contained" onClick={addEmployee}>
+        <Button variant="contained" onClick={addEmpleado}>
           Añadir
         </Button>
       </div>
@@ -119,7 +173,7 @@ export default function Employees() {
         </TableHead>
 
         <TableBody>
-          {employees.map((e) => (
+          {empleados.map((e) => (
             <TableRow key={e.id}>
               <TableCell>{e.nombre}</TableCell>
               <TableCell>{e.apellidos}</TableCell>
@@ -128,7 +182,7 @@ export default function Employees() {
               <TableCell>
                 <Button
                   color="error"
-                  onClick={() => deleteEmployee(e.id)}
+                  onClick={() => deleteEmpleado(e.id)}
                 >
                   Borrar
                 </Button>
