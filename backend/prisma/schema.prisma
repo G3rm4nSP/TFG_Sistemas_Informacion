@@ -130,13 +130,25 @@ model Ubicacion{
   local        Local   @relation(fields: [localId], references: [id])
 }
 
+enum Rol {
+  ADMIN
+  JEFE
+  VENTAS
+  RRHH
+}
+
 model Usuario{
-  id            String    @id  @default(uuid())
-  empleadoId    String    @unique
-  mail          String    @unique
-  passwordHash  String
-  rol           String    @default("ventas")
-  ultimoAcceso  DateTime  @default(now())
+  id                String    @id  @default(uuid())
+  empleadoId        String    @unique
+  mail              String    @unique
+  passwordHash      String
+  rol               Rol       @default(VENTAS)
+  ultimoAcceso      DateTime  @updatedAt
+  activo            Boolean   @default(true)
+  intentosFallidos  Int       @default(0)
+  bloqueadoHasta    DateTime?
+
+  refreshToken  RefreshToken[]
 
   empleado      Empleado  @relation(fields: [empleadoId], references: [id])
 }
@@ -199,4 +211,15 @@ model EmpleadoAusencia{
   observaciones  String?
 
   empleado      Empleado  @relation(fields: [empleadoId], references: [id])
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  usuarioId String
+  creadoEn  DateTime @default(now())
+  expiraEn  DateTime
+  revocado  Boolean  @default(false)
+
+  usuario   Usuario  @relation(fields: [usuarioId], references: [id])
 }

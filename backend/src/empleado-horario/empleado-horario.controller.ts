@@ -2,7 +2,10 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { EmpleadoHorarioService } from './empleado-horario.service';
 import { CreateEmpleadoHorarioDto } from './dto/create-empleado-horario.dto';
 import { UpdateEmpleadoHorarioDto } from './dto/update-empleado-horario.dto';
+import { UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
+@UseGuards(JwtAuthGuard)
 @Controller('empleado-horario')
 export class EmpleadoHorarioController {
   constructor(private readonly empleadoHorarioService: EmpleadoHorarioService) {}

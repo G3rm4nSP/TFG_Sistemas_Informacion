@@ -2,7 +2,10 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { CompraDetalleService } from './compra-detalle.service';
 import { CreateCompraDetalleDto } from './dto/create-compra-detalle.dto';
 import { UpdateCompraDetalleDto } from './dto/update-compra-detalle.dto';
+import { UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
+@UseGuards(JwtAuthGuard)
 @Controller('compra-detalle')
 export class CompraDetalleController {
   constructor(private readonly compraDetalleService: CompraDetalleService) {}
