@@ -15,12 +15,12 @@ export class EmpleadoService {
   async create (createEmpleadoDto: CreateEmpleadoDto) {
 
     try {
-      const claverRandom = Array.from({ length: 10 }, () => {
+      const claveRandom = Array.from({ length: 10 }, () => {
         const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
         return chars[Math.floor(Math.random() * chars.length)];
       }).join('');
 
-      const passwordHash = await bcrypt.hash(claverRandom, 10)
+      const passwordHash = await bcrypt.hash(claveRandom, 10)
       
       const { 
         localId,
@@ -46,8 +46,8 @@ export class EmpleadoService {
             salarioBase,
             numPagas,
             comision,
-            fechaCobro,
-            fechaContrato,
+            fechaContrato:fechaContrato ? new Date(fechaContrato): new Date(),
+            fechaCobro: fechaCobro ? new Date(fechaCobro) : new Date(new Date().setDate(new Date().getDate() + 30)),
             irpf,
             numeroSeguridadSocial,
             iban,
@@ -67,7 +67,7 @@ export class EmpleadoService {
       
       const empleadoCreado = await this.prisma.empleado.create({data: empleado, select: empleadoSelect});
       
-      return  {...empleadoCreado, correoEmpresa, claverRandom}
+      return  {...empleadoCreado, correoEmpresa, claveRandom}
 
     } catch (error : any) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
@@ -96,6 +96,12 @@ export class EmpleadoService {
       activo: true,
       categoria: true,
       localId: true,
+      local: {
+        select: {
+          id: true,
+          nombre: true,
+        }
+      }
     };
 
     let select;
@@ -113,7 +119,14 @@ export class EmpleadoService {
         nombre: true,
         apellidos: true,
         correo: true,
-        categoria: true 
+        categoria: true,
+        activo: true,
+        local: {
+        select: {
+          id: true,
+          nombre: true,
+        }
+      }
       };
     }
 
@@ -134,11 +147,17 @@ export class EmpleadoService {
       activo: true,
       categoria: true,
       localId: true,
+      local: {
+        select: {
+          id: true,
+          nombre: true,
+        }
+      }
     };
 
     let select;
 
-    if (rol === 'RRHH' || usuarioId === id) {
+    if (rol === 'RRHH') {
       select = { ...baseSelect, rrhh: empleadoSelect.rrhh };
 
     } else if (rol === 'JEFE') {
@@ -151,7 +170,14 @@ export class EmpleadoService {
         nombre: true,
         apellidos: true,
         correo: true,
-        categoria: true 
+        categoria: true,
+        activo : true,
+        local: {
+          select: {
+            id: true,
+            nombre: true,
+          }
+        }
       };
     }
 
@@ -175,6 +201,8 @@ export class EmpleadoService {
         irpf,
         numeroSeguridadSocial,
         iban,
+        mail,
+        rol,
         ...rest 
       } = updateEmpleadoDto;
 

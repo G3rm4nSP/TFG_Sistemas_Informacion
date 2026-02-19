@@ -23,6 +23,12 @@ export const empleadoSelect = {
       numeroSeguridadSocial: true,
       iban : true,
     }
-  }
+  },
+  local: {
+    select: {
+      id: true,
+      nombre: true,
+    }
+  },
 
 } satisfies Prisma.EmpleadoSelect;
