@@ -1,0 +1,37 @@
+import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { UbicacionService } from './application/use-cases/ubicacion.service';
+import { CreateUbicacionDto } from './application/dto/create-ubicacion.dto';
+import { UpdateUbicacionDto } from './application/dto/update-ubicacion.dto';
+import { UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+
+@UseGuards(JwtAuthGuard)
+@Controller('ubicacion')
+export class UbicacionController {
+  constructor(private readonly ubicacionService: UbicacionService) {}
+
+  @Post()
+  create(@Body() createUbicacionDto: CreateUbicacionDto) {
+    return this.ubicacionService.create(createUbicacionDto);
+  }
+
+  @Get()
+  findAll() {
+    return this.ubicacionService.findAll();
+  }
+
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.ubicacionService.findOne(id);
+  }
+
+  @Patch(':id')
+  update(@Param('id') id: string, @Body() updateUbicacionDto: UpdateUbicacionDto) {
+    return this.ubicacionService.update(id, updateUbicacionDto);
+  }
+
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.ubicacionService.remove(id);
+  }
+}

@@ -1,0 +1,37 @@
+import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { EmpleadoRrhhService } from './application/use-cases/empleado-rrhh.service';
+import { CreateEmpleadoRrhhDto } from './application/dto/create-empleado-rrhh.dto';
+import { UpdateEmpleadoRrhhDto } from './application/dto/update-empleado-rrhh.dto';
+import { UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+
+@UseGuards(JwtAuthGuard)
+@Controller('empleado-rrhh')
+export class EmpleadoRrhhController {
+  constructor(private readonly empleadoRrhhService: EmpleadoRrhhService) {}
+
+  @Post()
+  create(@Body() createEmpleadoRrhhDto: CreateEmpleadoRrhhDto) {
+    return this.empleadoRrhhService.create(createEmpleadoRrhhDto);
+  }
+
+  @Get()
+  findAll() {
+    return this.empleadoRrhhService.findAll();
+  }
+
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.empleadoRrhhService.findOne(id);
+  }
+
+  @Patch(':id')
+  update(@Param('id') id: string, @Body() updateEmpleadoRrhhDto: UpdateEmpleadoRrhhDto) {
+    return this.empleadoRrhhService.update(id, updateEmpleadoRrhhDto);
+  }
+
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.empleadoRrhhService.remove(id);
+  }
+}

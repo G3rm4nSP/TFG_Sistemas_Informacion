@@ -1,0 +1,216 @@
+PROYECTO TFG
+
+Vamos a crear un ERP personalizado para empresas que necesiten algo sencillo e intuitivo
+sin necesidad de pagar por almacenamiento en la nube, local y acccesible desde diferentes
+dispositivos para que los empleados puedan gestionar el almacen como las ventas sin necesidad
+de usar el mismo terminal. Agiliznado el proceso de inventariado como el de ventas.
+
+Contara con cuatro apartados distintos, el apartado de ventas donde se gestionaran todas las
+ventas que el comercio realize, el Stock que indicara con que productos cuenta la empresa y
+donde se encuentran si en la tienda o en el almacen, los empleados para que el encargado de 
+rrhh gstione a los empleados, y el de proovedores para que sea mas facil el control de repo-
+sicion de pedidos.
+
+Todo esto con una interfaz sencilla e intuitiva.
+
+1. OBJETIVOS
+
+Para conseguir completar este proyecto nos encargaremos de crear varios objetivos basicos
+haciendolos lo mas atomicos posibles para que el desarollador sea capaz de realizarlo sin 
+dificultad y siguiendo una guia estructurada. Estos objetivos los denominaremos requisitos
+y los dividiremos en funcionales y no funcionales. A su vez seran separados por modulos para
+poder ir completando cada uno y luego juntarlos todos en el ERP final.
+
+REQUISITOS DE GESTION DE EMPLEADOS (SEPARAR MAS ADELANTE LOS REQUISITOS)
+
+El empleado es el pilar de la empresa de el guardaremos todos los datos necesarios para que
+a final de mes el de rrhh pueda mandarle sun nomina con el dinero ganado.
+Habra tres tipos de empleados, el jefe el de recursos humanos y el de ventas.
+Todos los datos del empleado seran gestionados por rrhh y la visualizacion de sus datos se 
+limitara en la aplicacion segun el rol que tenga el usuario asignado a dicho empleado. De tal 
+forma que un vendedor vera los datos mas basicos de losusuarios activos como el local al que 
+pertenecen cada uno, su cargo, el correo y el nombre. El Jefe por el contrario podra ver ademas
+de estos datos si el empleado esta activo o no asi como su numero de telefono y dni.
+Finalmente el de rrhh podra visualizar asi como editar todos estos datos y mas como Nº de 
+seguridad social, iban al que van los pagos y mas datos necesarios. tambien podra dar de baja
+a un empleado dejandolo inactivo.
+
+Un empleado podra ver tambien sus datos personales que tiene la empresa pero no podra editarlos.
+Tambien habra un apartado para los horarios de los empleados asi como sus vacaciones y sus bajas
+laborales. Estos podran ser editados unicamente por rrhh pero el empleado en concreto podra 
+solicitar esos cambios para que el de rrhh pueda realizarlos. 
+
+Cuando hablamos de empleado hay que saber que hay diferencia con el usuario. Este sera la cuenta
+de dicho empleado para moverse por la aplicacion ERP. En esta cuenta se asignara el rol al dar de 
+alta a un empleado y se le asignara un correo y una contraseña predeterminada que mas adelante
+el usuario en cuestion podra cambiar.
+
+GESTION DE USUARIOS (separar requisitos)
+
+El usuario de la aplicacion debera iniciar sesion siempre antes de empezar a usarla. Si no lo 
+hace no podra usar nada de la aplicacion.
+
+Segun el rol del usuario podra realizar diferentes acciones en la ERP y habra datos que tendra 
+limitados. Mientras que el administrador puede ver todo y gestionar todo el de ventas solo podra
+gestionar las ventas. el de rrhh solo podra gestionar a los empleados y el jefe podra realizar
+ventas, modificarlas si hay algun problema y ralizar las compras a los proovedores.
+
+El usuario tendra un apartado para poder cambiar su contraseña asi como visualizar sus datos
+de empleado solicitar cambios a rrhh y visualizar sus horarios asi como si es vendedor ver sus
+ventas realizadas.
+
+GESTION DE VENTAS (separar requisitos)
+
+En el apartado de gestion de ventas el empleado vendedor podra iniciar una nueva venta donde
+podra ir metiendo productos en una lista ya sea por nombre o codigo de producto. 
+
+Cada producto escaneado se añadira a la lista y se descontara de la lista del stock de la tienda
+teniendo asi un control del inventariado de la tienda.
+
+Una vez finalizada la lista se preguntara si el cliente esta registrado para aplicar descuentos
+pertinentes, en el caso de que no este registrado habra una opcion de registar que se podra 
+omitir si el cliente no quiere registrarse. Habra una pregunta de si se paga con tarjeta o efectivo
+y en el caso de efectivo se guardar cunato se ha entregado y cuanto se ha devuelto. Tambien se 
+creara el ticket con los datos pertinentes del producto descunetos aplicados y demas, con la 
+opcion de imprimir. Esta venta se guardara con el empleado logueado para que quede registro por
+control de ventas y por si se desea aplicar comision.
+
+Toda la informacion de la venta se guardara en un historial de ventas que podra ser revisado
+por el vendedor por si hay algun problema o por posibles devoluciones.
+
+La comision podra activarla o no unicamente el usuario jefe en el apartado de ventas con el 
+porcentaje deseado.
+
+GESTION DE CLIENTES (separar requisitos)
+
+Esta parte sera sencilla, sera la encargada de mostar los clientes que se encunetren suscritos
+aqui se podran añadir ofertas que se aplicaran a los usuarios, como automatizar el envio de 
+correos promocionales. Esta parte sera solo accesible por el jefe para mantener la proteccion
+de los datos de los clientes.
+
+GESTION DE STOCK (separar requisitos)
+
+En el apartado de stock se encontraran las herraminetas que gestionan los productos tanto del
+almacen como de la tienda. A este apartado podran acceder los empleados vendedores y el jefe.
+Aqui se podra buscar un producto por nombre codigo de barras o id para ver cuantas existencias
+quedan, si estan en almacen o en tienda, si van a vencer proximamente, o cual es su proovedor.
+
+Aqui los vendedores tambien podran modificar los datos de los productos por si hay algun error,
+y tambien podran mover de almacen a la tienda. Dentro de la ubicacion en la que se encunetren
+(almacen/tineda) tambien podran indicar estanteria, pasillo... o cualquier dato relevante Para
+facilitar su localizacion a la hora de posicionarlo manualmente de un lado a otro.
+
+Finalmente tmabien habra una opcion de imprimir ID por si el producto no cuenta con codigo de
+barras y el cliente de la aplicacion, quiere añadir un mayor control a sus productos y facilitar
+el proceso de inventariado y de ventas de su empleado.
+
+GESTOR DE PROOVEDORES (separar requisitos)
+
+Al igual que el de clientes guardar los datos de los porveedores para que el jefe pueda realizar
+los encargos a los proveedores, este podra añadir eliminar o editar los datos de los proveedores
+asi como ver que productos ha encargado anteriormente y un historial con todos los pedidos 
+realizados.
+
+
+Todos estos gestores formarian el ERP capaz de gestionar un pequeño local de ventas de cualquier
+indole sin necesidad de herraminetas externas.
+Para este trabajo final de grado nos enfocaremos principalmente en conseguir un Gestor de ventas
+funcional y completo, ampliando el proyecto a los demas gestores cunado este este finalizado. 
+
+2. ARQUITECTURA
+
+La arquitectura del proyecto está compuesta por dos grandes capas: el backend y el frontend, 
+ambas gestionadas mediante la herramienta de control de versiones Git, siguiendo la metodología
+Gitflow, con ramas diferenciadas main, develop y feature para garantizar un desarrollo 
+estructurado y controlado.
+
+Backend
+
+El backend está desarrollado siguiendo los principios de Clean Architecture, organizando el código
+por módulos funcionales dentro del directorio src/modules. Cada módulo representa una entidad o 
+dominio del sistema (cliente, empleado, ventas, inventario, etc.) y contiene una separación clara 
+en tres capas principales:
+
+Application: Contiene los casos de uso (use-cases) y los DTOs. En esta capa se define la lógica de
+aplicación, coordinando las operaciones que el sistema puede realizar (crear, actualizar, eliminar,
+consultar, etc.).
+Domain: Contiene las entidades de negocio, interfaces de repositorio y servicios de dominio. Esta 
+capa encapsula la lógica de negocio pura y no depende de frameworks externos ni del ORM, garantizando 
+independencia tecnológica.
+Infrastructure: Contiene las implementaciones técnicas, como los repositorios que utilizan Prisma, 
+definiciones de select, y servicios externos (por ejemplo, cifrado de contraseñas). Es la única capa 
+que interactúa directamente con la base de datos.
+
+En la raíz de cada módulo se mantienen los archivos module.ts y controller.ts, que actúan como capa 
+de entrada HTTP y permiten exponer la API REST. Para su implementación se utiliza NestJS como framework
+principal para la construcción de la API y la gestión modular del sistema. La base de datos empleada es 
+PostgreSQL, un sistema de gestión de bases de datos relacional donde se almacena toda la información del 
+ERP. La conexión entre la aplicación y la base de datos se realiza mediante Prisma, que actúa como ORM 
+(Object-Relational Mapping), permitiendo trabajar con modelos tipados y consultas estructuradas.
+El entorno de ejecución se basa en Node.js, utilizando TypeScript como lenguaje principal, lo que 
+aporta tipado estático y mayor robustez al desarrollo.
+
+Gracias a esta arquitectura, se consigue una clara separación de responsabilidades, facilitando la 
+escalabilidad, el mantenimiento y la posibilidad de futuras ampliaciones del sistema. Todas las 
+operaciones CRUD y la lógica específica del negocio se gestionan desde el backend, incluyendo 
+autenticación y autorización mediante tokens generados tras el inicio de sesión del usuario, garantizando 
+un acceso seguro a la API dentro de la red local del sistema ERP.
+
+FRONTEND
+
+Para la Arquitectura del frontend usamos React como framework o librería principal para construir
+la interfaz con componentes reutilizables. Ademas, usamos vite como herramineta de desarrollo y
+TypeScript como lenguaje tipado de todo el front. Para comunicarnos con el backend usamos Axios
+que nos permite enviar y solicitar datos e introducir tokens en las consultas.
+
+La estructura principal del frontend se separa por ventanas, cada ventana es una pagina nueva.
+
+La ventana inicial es la del Login donde el usuario podra iniciar sesion para poder acceder a la
+aplicacion. Una vez iniciada sesion podra verse la ventana principal que cambia segun el tipo de
+usuario que ha iniciado sesion, siendo la de gestion de empleados la principal para el usuario de
+recursos humanos, la de gestion de ventas para el usuario vendedor y la de vision general para 
+el usuario Jefe. A su vez todos tendran un menu donde podran acceder a mas datos desde sus datos
+personales como un buscador para poder buscar los datos de otros usuarios.
+
+Para la primera parte nos centraremos en la arquitectura de la vista del vendedor con las ventas
+y una pequeña parte de stock para ingresar los productos que el vendedor va a vender.
+
+La arquitectura visual de la ventana del vendedor constara de tres partes. 
+
+En la parte superior habra una barra de busqueda que le servira para buscar productos para ver si 
+estan en stock, en donde se encuentran y cunatas cantidades hay. Esta parte le servira para buscar
+productos concretos por palabras clave, id, EAN-13 o cualquier otro dato util para hacer busqueda 
+de los productos.
+
+En la parte intermedia habra un listado que mostara todos los productos, este listado se dividira
+por zonas (almacen/tienda/otros) dividido en pestañas por las que el usuario podra desplazarse 
+libremente. En estas listas podra seleccionar productos para añadir descuentos o modificar los precios.
+
+En la parte inferior habra un boton para realizar una venta. En el momento que se pulse se cambiara 
+de ventana a una siguiente vista que muestre la interfaz de la venta, donde se podra empezar a escanear
+productos directamente, los productos escaneados apareceran en una lista en la pantalla con su precio
+y su cantidad y el precio total en la parte inferior. Tambien habra una busqueda manual por si el
+producto no se puede escanear buscarlo manualmente. y junto a la lista de los productos que salgan por
+dicha busqueda apareceran dos botones de mas y menos con la cantidad de ese producto que añadir al carrito.
+
+Junto al precio final habra un boton de finalizar y pagar, se preguntara si se paga con tarjeta o no 
+para que en el caso de que se pague en efectivo preguntar que cuanto dio el cliente para que calcule las
+vueltas. en el caso de con tarjeta se realizara la compra directamente. saldra un mensaje de venta realiza
+y preguntara si desea imprimir ticket, en el caso de que si se creara un ticket.pdf que se mande directamente
+a la impresora conectada a la terminal. Tras esto se devolvera al usuario a la vista principal de ventas
+en la parte superior izquierda habra dos iconos el icono de usuario y el de notificacion, al volver habra una 
+notificacion nueva que sera el historial de la ultima venta.
+
+Para la ventana de historiales de venta se mostrara el historial de todas las ventas realizadas en la tienda
+que se podra filtrar por empleado donde podra ver a parte de los detalles de la venta la comision que se lleva.
+Sera una lista con datos basicos como la hora el coste total vendedor y un boton de ver mas que muestre todo 
+el ticket con los productos descuentos cliente (en el caso de haberlo dado a la hora de realizar la venta) y 
+el coste con descuentos sin descunetos con iva y sin iva detallado completo. Se podra buscar tambien por fechas y 
+por cliente para si es necesario buscarlos por posibles reclamaciones.
+
+En la ventana de Usuario que aparece al pulsar el icono de usuario se veran los datos del usuario que este iniciado 
+sesion.
+ 
+3. PROCESOS
+
+4. ORGANIGRAMA
