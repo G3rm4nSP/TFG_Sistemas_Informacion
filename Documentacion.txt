@@ -158,24 +158,37 @@ un acceso seguro a la API dentro de la red local del sistema ERP.
 
 FRONTEND
 
-Para la Arquitectura del frontend usamos React como framework o librería principal para construir
-la interfaz con componentes reutilizables. Ademas, usamos vite como herramineta de desarrollo y
-TypeScript como lenguaje tipado de todo el front. Para comunicarnos con el backend usamos Axios
-que nos permite enviar y solicitar datos e introducir tokens en las consultas.
+El frontend del sistema está desarrollado siguiendo el modelo de Single Page Application (SPA), lo
+que significa que la aplicación se ejecuta en una única página web y la navegación entre secciones
+se realiza de forma dinámica sin recargar el navegador. Esto permite una experiencia de usuario más
+fluida y eficiente, reduciendo tiempos de carga y mejorando el rendimiento general del sistema.
 
-La estructura principal del frontend se separa por ventanas, cada ventana es una pagina nueva.
+Para la construcción de la interfaz se utiliza React como librería principal, basada en el desarrollo 
+mediante componentes reutilizables que encapsulan la lógica y la presentación de cada parte de la 
+aplicación. Además, se emplea Vite como herramienta de desarrollo y empaquetado del proyecto, lo que 
+proporciona un entorno rápido y optimizado para el desarrollo moderno en frontend. El lenguaje utilizado 
+es TypeScript, que aporta tipado estático y mayor robustez en la detección de errores durante el desarrollo.
 
-La ventana inicial es la del Login donde el usuario podra iniciar sesion para poder acceder a la
-aplicacion. Una vez iniciada sesion podra verse la ventana principal que cambia segun el tipo de
-usuario que ha iniciado sesion, siendo la de gestion de empleados la principal para el usuario de
-recursos humanos, la de gestion de ventas para el usuario vendedor y la de vision general para 
-el usuario Jefe. A su vez todos tendran un menu donde podran acceder a mas datos desde sus datos
-personales como un buscador para poder buscar los datos de otros usuarios.
+Para la comunicación con el backend se utiliza Axios, que permite realizar peticiones HTTP a la API REST, 
+así como incluir los tokens de autenticación necesarios para garantizar la seguridad en el acceso a los 
+recursos protegidos.
 
-Para la primera parte nos centraremos en la arquitectura de la vista del vendedor con las ventas
-y una pequeña parte de stock para ingresar los productos que el vendedor va a vender.
+La estructura principal del frontend se organiza por ventanas o vistas, donde cada ventana representa una 
+sección funcional del sistema. La ventana inicial corresponde al Login, desde donde el usuario puede iniciar 
+sesión para acceder a la aplicación. Una vez autenticado, se muestra la ventana principal, cuyo contenido 
+varía en función del rol del usuario:
 
-La arquitectura visual de la ventana del vendedor constara de tres partes. 
+El usuario de Recursos Humanos accede principalmente a la gestión de empleados.
+El usuario Vendedor accede a la gestión de ventas.
+El usuario Jefe dispone de una vista general del sistema.
+
+Además, todos los usuarios disponen de un menú de navegación que permite acceder a distintas secciones del 
+sistema, incluyendo sus datos personales y herramientas como buscadores para consultar información de otros 
+registros según los permisos establecidos.
+
+En esta memoria se profundizará principalmente en la arquitectura visual correspondiente a la vista del 
+vendedor, centrada en la gestión de ventas y una parte del control de stock necesario para registrar los 
+productos que serán vendidos. 
 
 En la parte superior habra una barra de busqueda que le servira para buscar productos para ver si 
 estan en stock, en donde se encuentran y cunatas cantidades hay. Esta parte le servira para buscar
