@@ -153,8 +153,7 @@ export default function EmpleadosPage() {
     return (
       emp.nombre.toLowerCase().includes(texto) ||
       emp.apellidos.toLowerCase().includes(texto) ||
-      emp.correo.toLowerCase().includes(texto) ||
-      emp.dni.toLowerCase().includes(texto)
+      emp.correo.toLowerCase().includes(texto) 
     );
   });
 

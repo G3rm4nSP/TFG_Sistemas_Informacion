@@ -22,7 +22,7 @@ export const User = createParamDecorator(
 export class EmpleadoController {
   constructor(private readonly empleadoService: EmpleadoService) {}
 
-  @Roles('RRHH')
+  @Roles('RRHH ', 'ADMIN')
   @Post()
   create(@Body() createEmpleadoDto: CreateEmpleadoDto) {
     return this.empleadoService.create(createEmpleadoDto);
@@ -38,13 +38,13 @@ export class EmpleadoController {
     return this.empleadoService.findOne(id, rol, usuarioId);
   }
 
-  @Roles('RRHH')
+  @Roles('RRHH', 'ADMIN')
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateEmpleadoDto: UpdateEmpleadoDto) {
     return this.empleadoService.update(id, updateEmpleadoDto);
   }
 
-  @Roles('RRHH')
+  @Roles('RRHH', 'ADMIN')
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.empleadoService.remove(id);

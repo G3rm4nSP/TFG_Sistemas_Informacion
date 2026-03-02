@@ -4,12 +4,24 @@ import { CreateProveedorDto } from './application/dto/create-proveedor.dto';
 import { UpdateProveedorDto } from './application/dto/update-proveedor.dto';
 import { UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { Roles } from '../../auth/decorators/roles.decorator';
+import { RolesGuard } from '../../auth/guards/roles.guard';
+import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 
-@UseGuards(JwtAuthGuard)
+export const User = createParamDecorator(
+  (field: string | undefined, ctx: ExecutionContext) => {
+    const request = ctx.switchToHttp().getRequest();
+    const user = request.user as { userId: string; rol: string };
+    return field ? user[field as keyof typeof user] : user;
+  },
+);
+
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('proveedor')
 export class ProveedorController {
   constructor(private readonly proveedorService: ProveedorService) {}
 
+  @Roles ('JEFE', 'ADMIN')
   @Post()
   create(@Body() createProveedorDto: CreateProveedorDto) {
     return this.proveedorService.create(createProveedorDto);
@@ -25,6 +37,7 @@ export class ProveedorController {
     return this.proveedorService.findOne(id);
   }
 
+  @Roles ('JEFE', 'ADMIN')
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateProveedorDto: UpdateProveedorDto) {
     return this.proveedorService.update(id, updateProveedorDto);
