@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Typography,
   Paper,
   Button,
-  Chip,
-  Collapse,
   Stack,
   Divider,
   TextField,
@@ -14,16 +13,12 @@ import {
   DialogContent,
   DialogActions,
   Snackbar,
-  Alert,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
+  Alert
 } from "@mui/material";
 import { api } from "../api/axios";
 
 interface Proveedor {
-  id?: string;
+  id: string;
   nombre: string;
   correo? : string;
   telefono?: string;
@@ -42,21 +37,24 @@ function decodeToken(token: string) {
 
 export default function ProveedoresPage() {
 
+
   const [proveedores, setProveedores] = useState<Proveedor[]>([]);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   
-    const [search, setSearch] = useState("");
+  const [search, setSearch] = useState("");
   
-    const [openForm, setOpenForm] = useState(false);
-    const [editingProveedor, setEditingProveedor] =
-      useState<Proveedor | null>(null);
+  const [openForm, setOpenForm] = useState(false);
+  const [editingProveedor, setEditingProveedor] =
+    useState<Proveedor | null>(null);
   
-    const [formData, setFormData] = useState<any>({});
-    const [successMsg, setSuccessMsg] = useState("");
+  const [formData, setFormData] = useState<any>({});
+  const [successMsg, setSuccessMsg] = useState("");
   
-    const token = localStorage.getItem("accessToken");
-    const user = token ? decodeToken(token) : null;
+  const token = localStorage.getItem("accessToken");
+  const user = token ? decodeToken(token) : null;
   
+  const navigate = useNavigate();
+
   useEffect(() => {
     fetchProveedores();
   }, []);
@@ -113,6 +111,10 @@ export default function ProveedoresPage() {
     );
   })
 
+  const realizarPedido = (prov: Proveedor) => {
+      navigate(`/proveedores/${prov.id}`);
+  };
+
   return (
     <Box p={5}>
       <Typography variant="h4" mb={4} fontWeight={600}>
@@ -148,11 +150,17 @@ export default function ProveedoresPage() {
                 <Typography variant="body2">{prov.telefono}</Typography>
                 <Typography variant="body2">{prov.descripcion}</Typography>
                 <Typography variant="body2">{prov.horarioEntrega}</Typography>
-                {user?.rol === "RRHH" && (
-                  <>
-                    <Button variant="outlined" onClick={() => handleEdit(prov)}> Editar </Button>
-                  </>
-               )}
+
+                <Divider sx={{ my: 2 }} />
+                <Stack direction="row" spacing={2}>
+                  <Button variant="contained" color="primary" onClick={() => realizarPedido(prov)}> Realizar Pedido </Button>
+              
+                  {user?.rol === "JEFE" && (
+                      <>
+                      <Button variant="contained" color="success" onClick={() => handleEdit(prov)}> Editar </Button>
+                    </>
+                  )}
+                </Stack>          
               </Box>
             </Stack>
           </Paper>
