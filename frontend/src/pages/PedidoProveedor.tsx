@@ -395,7 +395,7 @@ export default function PedidoProveedor() {
               <TextField
                 label="Buscar por nombre o descripción"
                 fullWidth
-                value={search}
+                value={searchProducto}
                 onChange={(e) => setSearchProducto(e.target.value)}
               />
               <Button variant="contained" color="warning" onClick={() => setOpenFormProducto(true)}> Nuevo Producto </Button>
