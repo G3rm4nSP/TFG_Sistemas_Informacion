@@ -1,8 +1,40 @@
 import { Button, Container, Typography, Stack } from "@mui/material";
 import { useNavigate } from "react-router-dom";
+import { api } from "../api/axios";
+import { useEffect, useState } from "react";
+
+function decodeToken(token: string) {
+  try {
+    const payload = token.split(".")[1];
+    return JSON.parse(atob(payload));
+  } catch {
+    return null;
+  }
+}
 
 export default function Home() {
+
+  const [usuarioCompleto, setUsuarioCompleto] = useState<any>(null);
+
+  const token = localStorage.getItem("accessToken");
+  const user = token ? decodeToken(token) : null;
+
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user?.sub) {
+      fetchUsuario();
+    }
+  }, []);
+
+  const fetchUsuario = async () => {
+    try {
+      const res = await api.get(`/usuario/${user.sub}`);
+      setUsuarioCompleto(res.data);
+    } catch (error) {
+      console.error("Error cargando usuario", error);
+    }
+  };
 
   return (
     <Container>
@@ -10,11 +42,17 @@ export default function Home() {
         ERP - Panel Principal
       </Typography>
 
+      {usuarioCompleto && (
+        <Typography sx={{ mb: 3 }}>
+          Bienvenido, {usuarioCompleto.empleado.nombre} {usuarioCompleto.empleado.apellidos}
+        </Typography>
+      )}
+
       <Stack spacing={2}>
-        <Button variant="contained" onClick={() => navigate("/")}>
+        <Button variant="contained" onClick={() => navigate("/login")}>
           Login
         </Button>
-        
+
         <Button variant="contained" onClick={() => navigate("/empleados")}>
           Gestión de Empleados
         </Button>
@@ -28,13 +66,12 @@ export default function Home() {
         </Button>
 
         <Button variant="contained" onClick={() => navigate("/proveedores")}>
-          Gestion de Proveedores
+          Gestión de Proveedores
         </Button>
 
-        <Button variant="contained" onClick={() => navigate("/proveedores")}>
-          Gestion de Ventas
+        <Button variant="contained" onClick={() => navigate("/ventas")}>
+          Gestión de Ventas
         </Button>
-
       </Stack>
     </Container>
   );

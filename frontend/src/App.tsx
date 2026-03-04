@@ -12,12 +12,12 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/home" element={<Home />} />
-        <Route path="/" element={<Login />} />
+        <Route path="/login" element={<Login />} />
         <Route path="/empleados" element={<Empleados />} />
         <Route path="/clientes" element={<Clientes />} />
         <Route path="/productos" element={<Productos />} />
         <Route path="/proveedores" element={<Proveedores />} />
-        <Route path="/proveedores/:id" element={<PedidoProveedor />} />      </Routes>
+        <Route path="/proveedores/:provId" element={<PedidoProveedor />} />      </Routes>
     </BrowserRouter>
   );
 }

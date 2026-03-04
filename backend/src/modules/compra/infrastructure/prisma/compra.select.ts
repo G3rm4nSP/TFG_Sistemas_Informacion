@@ -6,4 +6,17 @@ export const compraSelect = {
     localId: true,
     fecha: true,
     total: true,
+    detalles: {
+        select: {
+            productoId: true,
+            cantidad: true,
+            precioLote: true,
+            producto: {
+                select: {
+                    nombre: true,
+                    descripcion: true,
+                }
+            }
+        }
+    },
 } satisfies Prisma.CompraSelect;

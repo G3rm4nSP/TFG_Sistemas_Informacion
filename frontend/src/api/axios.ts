@@ -14,3 +14,16 @@ api.interceptors.request.use((config) => {
 
   return config;
 });
+
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Token expirado o inválido
+      localStorage.removeItem("accessToken");
+      window.location.href = "/login";
+    }
+
+    return Promise.reject(error);
+  }
+);

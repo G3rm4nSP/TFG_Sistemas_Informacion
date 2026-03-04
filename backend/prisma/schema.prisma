@@ -117,12 +117,18 @@ model Stock {
 
   producto     Producto   @relation(fields: [productoId], references: [id])
   ubicacion    Ubicacion  @relation(fields: [ubicacionId], references: [id])
+
+  @@unique([productoId, ubicacionId])
 }
 
+enum Ubi {
+  ALMACEN
+  TIENDA
+}
 model Ubicacion{
   id           String  @id  @default(uuid())
   localId      String
-  tipo         String  @default("almacen")
+  tipo         Ubi  @default(ALMACEN)
   descripcion  String 
 
   stocks       Stock[]

@@ -9,4 +9,11 @@ export const usuarioSelect = {
     activo : true,
     intentosFallidos : true,
     bloqueadoHasta : true,
+    empleado : {
+        select: {
+            nombre: true,
+            apellidos: true,
+            localId: true,
+        }
+    }
 } satisfies Prisma.UsuarioSelect;

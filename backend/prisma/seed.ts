@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient, Ubi } from '@prisma/client'
 import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient()
@@ -22,7 +22,7 @@ async function main() {
   const almacen = await prisma.ubicacion.create({
     data: {
         localId: local.id,
-        tipo: 'ALMACEN',
+        tipo: Ubi.ALMACEN,
         descripcion: 'Almacen principal'
     }
   })
@@ -31,7 +31,7 @@ async function main() {
   const tienda = await prisma.ubicacion.create({
     data: {
         localId: local.id,
-        tipo: 'TIENDA',
+        tipo: Ubi.TIENDA,
         descripcion: 'Planta 1'
     }
   })

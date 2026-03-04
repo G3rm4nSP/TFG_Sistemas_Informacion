@@ -39,7 +39,6 @@ export default function ProveedoresPage() {
 
 
   const [proveedores, setProveedores] = useState<Proveedor[]>([]);
-  const [expandedId, setExpandedId] = useState<string | null>(null);
   
   const [search, setSearch] = useState("");
   
