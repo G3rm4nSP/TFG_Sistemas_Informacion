@@ -4,6 +4,8 @@ import { CreateStockDto } from './application/dto/create-stock.dto';
 import { UpdateStockDto } from './application/dto/update-stock.dto';
 import { UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { Ubi } from '@prisma/client';
+import { MoverStockDto } from './application/dto/mover-stock.dto';
 
 @UseGuards(JwtAuthGuard)
 @Controller('stock')
@@ -24,10 +26,21 @@ export class StockController {
   findOne(@Param('id') id: string) {
     return this.stockService.findOne(id);
   }
-
+  
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateStockDto: UpdateStockDto) {
+  update(
+    @Param('id') id: string,
+    @Body() updateStockDto: UpdateStockDto)
+    {
     return this.stockService.update(id, updateStockDto);
+  }
+
+  @Patch('/mover/:id')
+  mover(
+  @Param('id') origenId: string,
+  @Body() moverStockDto: MoverStockDto)
+    {
+    return this.stockService.moverStock(origenId,moverStockDto);
   }
 
   @Delete(':id')

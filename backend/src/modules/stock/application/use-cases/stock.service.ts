@@ -1,11 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { NotFoundException } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { Prisma, Ubi } from '@prisma/client';
 import { PrismaService } from '../../../../prisma/prisma.service';
 import { CreateStockDto } from '../dto/create-stock.dto';
 import { UpdateStockDto } from '../dto/update-stock.dto';
 import { stockSelect } from '../../infrastructure/prisma/stock.select';
 import { connect } from 'http2';
+import { MoverStockDto } from '../dto/mover-stock.dto';
 
 @Injectable()
 export class StockService {
@@ -35,12 +36,12 @@ export class StockService {
     return stock;
 
   }
-
   async update(id: string, updateStockDto: UpdateStockDto) {
 
     try {
 
       const {productoId, ubicacionId, ...rest} = updateStockDto;
+  
       const stock : Prisma.StockUpdateInput = {
         ...rest,
         ...(productoId && {producto: {connect: {id : productoId}}}),
@@ -57,6 +58,57 @@ export class StockService {
     }
 
   }
+
+  async moverStock(
+    origenId: string, moverStockDto: MoverStockDto,
+  ){
+    try {
+      const origen = await this.prisma.stock.findUnique({
+        where: { id:origenId },
+      });
+
+      if (!origen || origen.cantidad < moverStockDto.cantidad) {
+        throw new BadRequestException('Stock insuficiente');
+      }
+      
+      await this.prisma.$transaction([
+        this.prisma.stock.update({
+          where: {
+            id : origen.id
+          },
+          data: {
+            cantidad: {
+              decrement: moverStockDto.cantidad,
+            },
+          },
+        }),
+
+        this.prisma.stock.upsert({
+          where: {
+            productoId_ubicacionId: {
+              productoId: moverStockDto.productoId,
+              ubicacionId: moverStockDto.destinoUbicacionId,
+            },
+          },
+          update: {
+            cantidad: {
+              increment: moverStockDto.cantidad,
+            },
+          },
+          create: {
+            productoId: moverStockDto.productoId,
+            ubicacionId: moverStockDto.destinoUbicacionId,
+            cantidad: moverStockDto.cantidad,
+          },
+        }),
+      ])
+    } catch (error : any) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') throw new NotFoundException('Error moviendo el stock');
+      throw error;
+    }
+    
+  }
+
 
   async remove(id: string) {
 

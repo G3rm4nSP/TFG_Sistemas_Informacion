@@ -1,3 +1,5 @@
+import {Ubicacion } from "@prisma/client";
+
 export class CreateStockDto {
     productoId! : string;
     ubicacionId! : string;

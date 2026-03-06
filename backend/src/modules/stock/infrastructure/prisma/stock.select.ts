@@ -7,4 +7,18 @@ export const stockSelect = {
     cantidad: true,
     descuento: true,
     updatedAt: true,
+    producto : true,
+    ubicacion :  {
+        select:{
+            localId : true,
+            tipo : true,
+            descripcion : true,
+            local: {
+                select: {
+                    nombre : true,
+                }
+            }
+        },
+
+    },
 } satisfies Prisma.StockSelect;

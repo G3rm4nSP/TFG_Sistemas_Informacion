@@ -5,4 +5,9 @@ export const ubicacionSelect = {
     localId : true,
     tipo : true,
     descripcion : true,
+    local : {
+        select:{
+            nombre : true,
+        },
+    },
 } satisfies Prisma.UbicacionSelect;
