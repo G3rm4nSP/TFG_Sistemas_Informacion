@@ -484,7 +484,7 @@ export default function ProductosPage() {
               variant="contained"
               color="error"
               onClick={() => {
-                setMovido({
+                movido?.cantidad>1 && setMovido({
                   ...movido, 
                   cantidad : movido?.cantidad - 1
                 }
