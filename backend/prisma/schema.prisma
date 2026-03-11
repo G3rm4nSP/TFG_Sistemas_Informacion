@@ -64,6 +64,7 @@ model Local {
 
   empleados        Empleado[]
   compras          Compra[]
+  ventas           Venta[]
   ubicaciones      Ubicacion[]
 }
 
@@ -85,13 +86,15 @@ model Venta {
   id          String    @id  @default(uuid())
   empleadoId  String
   clienteId   String?
+  localId     String
   fecha       DateTime  @default(now())
   total       Float
 
   detalles    VentaDetalle[]
 
-  empleado    Empleado  @relation(fields: [empleadoId], references: [id])
+  empleado    Empleado   @relation(fields: [empleadoId], references: [id])
   cliente     Cliente?   @relation(fields: [clienteId], references: [id])
+  local       Local      @relation(fields: [localId], references:[id])
 }
 
 model Compra {
@@ -164,8 +167,9 @@ model VentaDetalle{
   productoId    String
   cantidad      Int
   precioSinIVA  Float
+  descuento     Float?
   precioFinal   Float
-
+  
   venta         Venta     @relation(fields: [ventaId], references: [id])
   producto      Producto  @relation(fields: [productoId], references: [id])
 

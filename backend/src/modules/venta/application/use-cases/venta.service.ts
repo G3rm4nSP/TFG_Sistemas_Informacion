@@ -1,11 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../../prisma/prisma.service';
 import { CreateVentaDto } from '../dto/create-venta.dto';
 import { UpdateVentaDto } from '../dto/update-venta.dto';
 import { ventaSelect } from '../../infrastructure/prisma/venta.select';
-import { connect } from 'http2';
+
 
 @Injectable()
 export class VentaService {
@@ -14,15 +14,66 @@ export class VentaService {
 
   async create(createVentaDto: CreateVentaDto) {
     
-    const {empleadoId, clienteId, ...rest} = createVentaDto;
-    const venta : Prisma.VentaCreateInput = {
-      ...rest,
-      empleado: {connect: {id: empleadoId}},
-      cliente: {connect: {id: clienteId}},
-    };
+    const {empleadoId, clienteId,detalles,localId, ...rest} = createVentaDto;
+    
+    return this.prisma.$transaction(async (tx) => {
+      
+      //comprobamos que todos los stocks tengan la cantidad indicada
 
-    return this.prisma.venta.create({data: venta, select: ventaSelect});
+      for (const detalle of detalles){
+        const stock = await tx.stock.findUnique({
+          where: { id: detalle.stockId }
+        });
 
+        if (!stock) {
+          throw new NotFoundException(
+            `Stock no encontrado para id ${detalle.stockId}`
+          );
+        }
+
+        if (stock.cantidad < detalle.cantidad) {
+          throw new BadRequestException(
+            `No hay existencias suficientes para el producto ${stock.productoId}`
+          );
+        }
+      }
+
+      //creamos las ventas
+      const venta = await tx.venta.create({
+        data: {
+          ...rest,
+          empleado: {connect: {id: empleadoId}},
+          cliente: clienteId ? { connect: { id: clienteId } }: undefined,
+          local: {connect: {id: localId}},
+          detalles: {
+            create: detalles.map((detalle) => ({
+              cantidad :detalle.cantidad,
+              precioSinIVA: detalle.precioSinIVA,
+              descuento: detalle.descuento,
+              precioFinal: detalle.precioFinal,
+              producto: { connect: { id: detalle.productoId } },
+            })),
+          },
+        },
+      });
+
+      //actualizamos los stocks
+      await Promise.all(
+        detalles.map((detalle) =>
+          tx.stock.update({
+            where: { id: detalle.stockId },
+            data: {
+              cantidad: {
+                decrement: detalle.cantidad,
+              },
+            },
+          })
+        )
+      );
+
+      return venta;
+
+    });
   }
 
   async findAll() {
@@ -39,41 +90,16 @@ export class VentaService {
   
   }
 
-  async update(id: string, updateVentaDto: UpdateVentaDto) {
+  
+    async update(ventaId: string, updateVentaDto: UpdateVentaDto) {
     
-    try{
-
-      const {empleadoId, clienteId, ...rest} = updateVentaDto;
-      const venta: Prisma.VentaUpdateInput = {
-        ...rest,
-        ...(empleadoId && {empleado: { connect: { id: empleadoId }}}),
-        ...(clienteId && {cliente: { connect: { id: clienteId }}}),
-      }
-
-      return await this.prisma.venta.update({where: {id}, data: venta, select: ventaSelect});
-
-    }catch (error: any) {
-
-      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') throw new NotFoundException('Venta no encontrada');
-      throw error;
+      throw new BadRequestException('Operacion no permitida: No se pueden modificar las ventas una vez creadas');
     
     }
   
-  }
-
-  async remove(id: string) {
-    
-    try{
-
-      return await this.prisma.venta.delete({where: {id}, select: ventaSelect});
-
-    }catch (error: any) {
-
-      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') throw new NotFoundException('Venta no encontrada');
-      throw error;
-    
+    async remove(ventaId: string) {
+           
+      throw new BadRequestException('Operacion no permitida: No se pueden modificar las ventas una vez creadas');
+  
     }
-
   }
-
-}

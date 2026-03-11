@@ -75,6 +75,7 @@ export default function ProductosPage() {
   const [searchUbicacion, setSearchUbicacion] = useState("");
   const [openFormNuevaUbicacion, setOpenFormNuevaUbicacion] = useState(false);
   const [openListaUbicaciones, setOpenListaUbicaciones] = useState (false);
+  const [openDescuento, setOpenDescuento] = useState (false);
   const [openFormProducto, setOpenFormProducto] = useState(false);
   const [openFormMoverStock, setOpenFormMoverStock] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
@@ -87,6 +88,7 @@ export default function ProductosPage() {
   const [movido, setMovido] = useState<any>();
   const [origenId, setOrigenId] = useState("");
   const [ubisAMover, setUbisAMover] = useState<Stock[]>([]);
+  const [editingProducto, setEditingProducto] = useState<Producto | null>(null);
 
 
   const token = localStorage.getItem("accessToken");
@@ -197,7 +199,25 @@ export default function ProductosPage() {
     setOrigenId("");
   }
 
-  const handleSubmitProducto = async () => {
+  const handleEditProducto = async() => {
+    const payload = {
+      nombre: formData.nombre,
+      descripcion: formData.descripcion,
+      tipo: formData.tipo,
+      porcentajeIVA: parseFloat(formData.porcentajeIVA),
+      precioBase: parseFloat(formData.precioBase),
+      expiracion: formData.expiracion || null,
+    };
+
+    await api.patch(`/producto/${editingProducto?.id}`, payload);
+    setSuccessMsg("Producto actualizado correctamente");
+    setOpenFormProducto(false);
+    fetchCatalogoProductos();
+    fetchStock();
+    setFormData({});
+  }
+
+  const handleCreateProducto = async () => {
     const payload = {
       nombre: formData.nombre,
       descripcion: formData.descripcion,
@@ -262,6 +282,23 @@ export default function ProductosPage() {
     }
   };
 
+  const handleDescuentoStock = async() =>{
+    const payload ={
+      descuento: parseFloat(formData.descuento)
+    }
+
+    try {
+      await api.patch(`/stock/${formData.idDescuento}`, payload);
+      setSuccessMsg("Descuento aplicado correctamente")
+      fetchStock();
+    } catch (error) {
+      console.error("Error aplicando descuento:", error);
+      setErrorMsg("Error al aplicar el descuento. Inténtalo de nuevo.");      
+    }
+      
+      setOpenDescuento(false);
+  }
+
   return (
     <Box p={5}>
       <Paper sx={{ p: 2 }}>
@@ -295,6 +332,7 @@ export default function ProductosPage() {
                       <Typography fontWeight={600}>{stock.producto.nombre}</Typography>
                       <Typography variant="body2">Descripcion: {stock.producto.descripcion}</Typography>
                       <Typography variant="body2">Precio Base: {stock.producto.precioBase.toFixed(2)} €</Typography>
+                      {(stock.descuento ?? 0) > 0 && (<Typography variant="body2">Descuento: {stock.descuento?.toString()}%</Typography>)}
                       <Stack direction="row" spacing={2} sx={{ mb: 4 }}>
                         <Typography fontWeight={600}>Cantidad: </Typography>
                         <Typography variant="body2">{stock.cantidad || 0}</Typography>
@@ -309,7 +347,16 @@ export default function ProductosPage() {
                   </Stack>
                   <Stack  direction = "row" spacing={2} mt={1}>
                     <Button variant="contained" onClick={() => moverStock(stock)}>
-                      Almacenar Producto
+                      Guardar Producto
+                    </Button>
+                    <Button variant="contained" onClick={() => {
+                      setFormData({
+                        ...formData,
+                        idDescuento : stock.id,
+                      })
+                      setOpenDescuento(true);
+                    }}>
+                      Aplicar Descuento
                     </Button>
                     {stock.cantidad===0 && <Button variant="contained" color="error" onClick={() => handleDeleteStock(stock.id)}>
                       Eliminar
@@ -333,7 +380,7 @@ export default function ProductosPage() {
                     <Stack spacing={2} mt={1}>
                       <Typography fontWeight={600}>{stock.producto.nombre}</Typography>
                       <Typography variant="body2">Descripcion: {stock.producto.descripcion}</Typography>
-                      <Typography variant="body2">Precio Base: {stock.producto.precioBase.toFixed(2)} €</Typography>
+                      <Typography variant="body2">Precio Base: {stock.producto.precioBase.toFixed(0)} €</Typography>
                       <Stack direction="row" spacing={2} sx={{ mb: 4 }}>
                         <Typography fontWeight={600}>Cantidad: </Typography>
                         <Typography variant="body2">{stock.cantidad || 0}</Typography>
@@ -348,7 +395,7 @@ export default function ProductosPage() {
                   </Stack>
                   <Stack  direction = "row" spacing={2} mt={1}>
                     <Button variant="contained" onClick={() => moverStock(stock)}>
-                      Almacenar Producto
+                      Reponer Producto
                     </Button>
                     {stock.cantidad===0 && <Button variant="contained" color="error" onClick={() => handleDeleteStock(stock.id)}>
                       Eliminar
@@ -379,7 +426,14 @@ export default function ProductosPage() {
                           <Typography fontWeight={600}>Cantidad: </Typography>
                           <Typography variant="body2">{producto.stocks.reduce((total, stock) => total + stock.cantidad, 0)}</Typography>
                         </Stack>
-                      </Stack>                  
+                      </Stack>
+                      <Button variant="contained" color="warning" onClick={() => {
+                        setEditingProducto(producto);
+                        setFormData(producto);
+                        setOpenFormProducto(true);
+                      }}>
+                        Editar
+                      </Button>                   
                     </Stack>
                   </Paper>
                 ))}
@@ -459,8 +513,8 @@ export default function ProductosPage() {
           <Button onClick={() => setOpenFormProducto(false)}>
             Cancelar
           </Button>
-          <Button variant="contained" onClick={handleSubmitProducto}>
-            Guardar
+          <Button variant="contained" onClick={editingProducto? handleEditProducto:handleCreateProducto}>
+            {editingProducto?"Editar":"Guardar"}
           </Button>
         </DialogActions>
       </Dialog>
@@ -677,6 +731,43 @@ export default function ProductosPage() {
             handleSubmitUbicacion();
           }}>
             Guardar
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Formulario Descuento*/}
+      <Dialog
+        open={openDescuento}
+        onClose={() => setOpenDescuento(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          Aplica un Descuento
+        </DialogTitle>
+
+        <DialogContent>
+          <Stack spacing={2} mt={1}>
+            <TextField
+              label="Descuento %"
+              value={formData.descuento || ""}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  descuento: e.target.value,
+                })
+              }
+            />
+
+          </Stack>
+        </DialogContent>
+
+        <DialogActions>
+          <Button onClick={() => setOpenDescuento(false)}>
+            Cancelar
+          </Button>
+          <Button variant="contained" onClick={() => handleDescuentoStock()}>
+            Aplicar Descuento
           </Button>
         </DialogActions>
       </Dialog>

@@ -3,5 +3,6 @@ export class CreateVentaDetalleDto {
     productoId! : string;
     cantidad! : number;
     precioSinIVA! : number;
+    descuento? : number;
     precioFinal! : number;
 }

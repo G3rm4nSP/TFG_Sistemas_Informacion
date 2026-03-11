@@ -5,5 +5,6 @@ export const ventaDetalleSelect = {
     productoId : true,
     cantidad : true,
     precioSinIVA: true,
+    descuento : true,
     precioFinal: true,
 } satisfies Prisma.VentaDetalleSelect;
