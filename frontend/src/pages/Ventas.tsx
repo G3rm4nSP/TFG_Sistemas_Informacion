@@ -68,6 +68,9 @@ interface Venta {
   localId: string;
   fecha: Date;
   total: number;
+  cliente :any,
+  empleado: any,
+  local : any,
 
   detalles: VentaDetalle[];
 }
@@ -116,7 +119,7 @@ export default function Ventas() {
   const [stocks, setStocks] = useState<Stock[]>([]);
   const [ventas, setVentas] = useState<Venta[]>([]);
   const [movido, setMovido] = useState<any>();
-  const [mostrarDetalles, setMostrarDetalles] = useState(true);
+  const [expandedVenta, setExpandedVenta] = useState<{[key: string]: boolean}>({});
   const [carrito, setCarrito] = useState<VentaDetalle[]>([]);
 
   const token = localStorage.getItem("accessToken");
@@ -316,6 +319,7 @@ export default function Ventas() {
                       <Typography variant="body2">Zona: {stock.ubicacion.descripcion}</Typography>
                     </Stack>                  
                   </Stack>
+                
                 </Paper>
               ))}
             </Stack>        
@@ -340,15 +344,40 @@ export default function Ventas() {
                   <Stack direction="row" spacing={2} sx={{ mb: 4 }}>
                     <Stack spacing={2} mt={1}>
                       <Typography fontWeight={600}>Fecha: {new Date(venta.fecha).toLocaleDateString()}</Typography>
-                      <Typography variant="body2">ID Empleado: {venta.empleadoId}</Typography>
-                      <Typography variant="body2">ID CLiente: {venta.clienteId??"Null"} </Typography>
-                      <Typography variant="body2">ID Local: {venta.localId??"Null"} </Typography>
+                      <Typography variant="body2">Empleado: {venta.empleado.nombre} {venta.empleado.apellidos}</Typography>
+                      {(venta.clienteId && <Typography variant="body2">Cliente: {venta.cliente?.nombre} {venta.cliente?.apellidos}</Typography>)}
+                      <Typography variant="body2">ID Local: {venta.local.nombre} </Typography>
                       <Stack direction="row" spacing={2} sx={{ mb: 4 }}>
                         <Typography fontWeight={600}>Total: </Typography>
-                        <Typography variant="body2">{venta.total || 0}</Typography>
+                        <Typography variant="body2">{venta.total.toFixed(2) || 0} €</Typography>
                       </Stack>
+                      <Button 
+                        variant="text" 
+                        onClick={() => setExpandedVenta(prev => ({...prev, [venta.id]: !prev[venta.id]}))}>
+                        {expandedVenta[venta.id] ? "Mostrar menos..." : "Mostrar más..."}
+                      </Button>
                     </Stack>                  
                   </Stack>
+                  {expandedVenta[venta.id] && (
+                    <Stack spacing={2} mt={1}>
+                      {venta.detalles.map((ventaDetalle) => (
+                        <Paper key={ventaDetalle.ventaId + "-" + ventaDetalle.productoId} sx={{ p: 2, borderRadius: 3 }}>
+                          <Stack direction="row" spacing={2} sx={{ mb: 4 }}>
+                            <Stack spacing={2} mt={1}>
+                              <Typography fontWeight={600}>Producto: {ventaDetalle.producto?.nombre}</Typography>
+                              <Typography variant="body2">Cantidad: {ventaDetalle.cantidad} uds</Typography>
+                              {(ventaDetalle.descuento ?? 0) > 0 && (<Typography variant="body2">Descuento: {ventaDetalle.descuento?.toString()}%</Typography>)}
+                              {(ventaDetalle.descuento ?? 0) > 0 && (<Typography variant="body2">Precio sin descuento: {(ventaDetalle.precioFinal * (1 + ventaDetalle.descuento / 100)).toFixed(2)} €</Typography>)}
+                              <Stack direction="row" spacing={2} sx={{ mb: 4 }}>
+                                <Typography fontWeight={600}>Precio Final: </Typography>
+                                <Typography variant="body2">{ventaDetalle.precioFinal.toFixed(2) || 0} €</Typography>
+                              </Stack>
+                            </Stack>                  
+                          </Stack>
+                        </Paper>
+                      ))}
+                    </Stack>
+                  )}
                 </Paper>
               ))}
             </Stack>        
@@ -387,7 +416,7 @@ export default function Ventas() {
                         <Typography fontWeight={600}>{stock.producto.nombre}</Typography>
                         <Typography variant="body2">Descripcion: {stock.producto.descripcion}</Typography>
                         <Typography variant="body2">Precio Base: {stock.producto.precioBase.toFixed(2)} €</Typography>
-                        {stock.producto.descuento&&<Typography variant="body2">Descuento: {stock.producto.descuento.toFixed(2)}%</Typography>}                        
+                        {(stock.descuento ?? 0) > 0 && (<Typography variant="body2">Descuento: {stock.descuento?.toString()}%</Typography>)}
                         <Stack direction="row" spacing={2} sx={{ mb: 4 }}>
                           <Typography fontWeight={600}>Cantidad: </Typography>
                           <Typography variant="body2">{stock.cantidad || 0}</Typography>

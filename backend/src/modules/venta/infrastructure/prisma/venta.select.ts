@@ -8,5 +8,23 @@ export const ventaSelect = {
     fecha: true,
     total: true,
 
-    detalles: true,
+    detalles: {
+        select:{
+            cantidad: true,
+            precioSinIVA: true,
+            descuento: true,
+            precioFinal: true,
+
+            producto: {
+                select:{
+                    nombre : true,
+                }
+            }
+        }
+    },
+    empleado: true,
+    cliente: true,
+    local: true
+
+
 } satisfies Prisma.VentaSelect;
