@@ -450,7 +450,8 @@ export default function ProductosPage() {
         fullWidth
       >
         <DialogTitle>
-          Nuevo Producto
+           {editingProducto?"Editar Producto":"Nuevo Producto"}
+          
         </DialogTitle>
 
         <DialogContent>
