@@ -73,8 +73,8 @@ export default function Home() {
           Gestión de Ventas
         </Button>
 
-        <Button variant="contained" onClick={() => navigate("/listaKPIs")}>
-          Lista KPIs
+        <Button variant="contained" onClick={() => navigate("/listaDashboards")}>
+          Lista Dashboards
         </Button>
       </Stack>
     </Container>

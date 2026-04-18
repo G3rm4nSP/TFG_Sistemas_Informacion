@@ -7,9 +7,9 @@ import Productos from "./pages/Productos";
 import Proveedores from "./pages/Proveedores"
 import PedidoProveedor from "./pages/PedidoProveedor";
 import Ventas from "./pages/Ventas"
-import ListaKPIs from "./pages/ListaKPIs"
-import KPIsVentas from "./pages/KPIsVentas"
-import KPIsClave from "./pages/KPIsClave"
+import ListaDashboards from "./pages/ListaDashboards"
+import DashboardVentas from "./pages/DashboardVentas"
+import DashboardGeneral from "./pages/DashboardGeneral"
 
 function App() {
   return (
@@ -24,9 +24,9 @@ function App() {
         <Route path="/ventas" element={<Ventas />} />
         <Route path="/proveedores" element={<Proveedores />} />
         <Route path="/proveedores/:provId" element={<PedidoProveedor />} />
-        <Route path="/listaKPIs" element={<ListaKPIs/>} />
-        <Route path="/listaKPIs/KPIsVentas" element={<KPIsVentas/>} />
-        <Route path="/listaKPIs/KPIsClave" element={<KPIsClave/>} />
+        <Route path="/listaDashboards" element={<ListaDashboards/>} />
+        <Route path="/listaDashboards/DashboardVentas" element={<DashboardVentas/>} />
+        <Route path="/listaDashboards/DashboardGeneral" element={<DashboardGeneral/>} />
       </Routes>
     </BrowserRouter>
   );

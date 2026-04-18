@@ -23,11 +23,16 @@ import { api } from "../api/axios";
 interface DetallesDashboard {
   evolucion : { fecha: string; total: number }[];
   ingresosHoy : number;
+  ingresosAyer : number;
   ingresosMes : number;
+  ingresosMesAnterior : number;
   ticketMedio : number;
+  ticketMedioMesAnterior : number;
   topEmpleadosBeneficios : { nombre: string; apellidos: string; total: number }[];
   topEmpleadosVentas : { nombre: string; apellidos: string; ventas: number }[];
   topProductos : { nombre: string; cantidad: number }[];
+  clientesNuevos : number;
+  stockBajo : { nombre: string; stock: number }[];
 }
 
 function decodeToken(token: string) {
@@ -63,17 +68,7 @@ function completarDias(evolucion: any[]) {
   return resultado;
 }
 
-export default function KPIsClave() {
-  /*
-  💰 Ingresos hoy / mes
-  📈 Evolución de ventas (gráfico)
-  🧾 Ticket medio
-  🛒 Nº ventas
-  👤 Clientes nuevos
-  ⚠️ Productos con stock bajo
-  🏆 Top 5 productos
-  👨‍💼 Top 3 empleados 
-  */
+export default function DashboardGeneral() {
   const [data, setData] = useState<DetallesDashboard | null>(null);
 
   useEffect(() => {
@@ -99,11 +94,14 @@ export default function KPIsClave() {
 
         {/* 🔥 KPIs */}
         <Stack direction="row" spacing={2} mb={4}>
-          <KPI title="Ingresos hoy" value={`${data.ingresosHoy} €`} />
-          <KPI title="Ingresos mes" value={`${data.ingresosMes} €`} />
-          <KPI title="Ticket medio" value={`${data.ticketMedio} €`} />
-          <KPI title="Ventas" value={data.evolucion.length} />
-          <KPI title="Clientes nuevos" value={0} />
+          <KPI title="Ingresos hoy" value={`${data.ingresosHoy} €`} secondary={`Hace un día(€): ${data.ingresosAyer} €`} 
+            trend={data.ingresosHoy > data.ingresosAyer ? 1 : data.ingresosHoy < data.ingresosAyer ? -1 : 0} />
+          <KPI title="Ingresos mes" value={`${data.ingresosMes} €`} secondary={`Mes anterior(€): ${data.ingresosMesAnterior} €`} 
+            trend={data.ingresosMes > data.ingresosMesAnterior ? 1 : data.ingresosMes < data.ingresosMesAnterior ? -1 : 0} />
+          <KPI title="Ticket medio" value={`${data.ticketMedio} €`} secondary="Mes anterior (%):"
+            percent={(data.ticketMedio - data.ticketMedioMesAnterior)/data.ticketMedioMesAnterior * 100 || 0} />
+          <KPI title="Ventas" value={`${data.evolucion.length} ventas`}  />
+          <KPI title="Clientes nuevos" value={`${data.clientesNuevos} personas`} icon="👤" />
         </Stack>
 
         {/* 📈 GRÁFICA */}
@@ -174,7 +172,7 @@ export default function KPIsClave() {
             ))}
           </Paper>
 
-          {/* Stock bajo 
+          {/* Stock bajo */}
           <Paper sx={{ p: 2, flex: 1 }}>
             <Typography variant="h6" mb={2}>
               ⚠️ Stock bajo
@@ -182,10 +180,10 @@ export default function KPIsClave() {
 
             {data.stockBajo.map((p: any) => (
               <Typography key={p.id} color="error">
-                {p.nombre} — {p.cantidad} uds
+                {p.nombre} — {p.stock} uds
               </Typography>
             ))}
-          </Paper>*/}
+          </Paper>
 
         </Stack>
       </Paper>
@@ -194,15 +192,40 @@ export default function KPIsClave() {
 }
 
 /* 🔥 COMPONENTE KPI reutilizable */
-function KPI({ title, value }: { title: string; value: any }) {
+function KPI({ title, value, secondary, trend , percent, icon}: { title: string; value: any; secondary?: string; trend?: number, percent?: number, icon?: string }) {
+  let color: "success" | "error" | "warning" | "info" | "primary" | "secondary" | undefined;
+
+  if (trend === 1) color = "success";
+  else if (trend === -1) color = "error";
+  else if (trend === 0) color = "warning";
+
   return (
     <Paper sx={{ p: 2, flex: 1 }}>
-      <Typography variant="body2" color="text.secondary">
-        {title}
-      </Typography>
-      <Typography variant="h5" fontWeight={600}>
-        {value}
-      </Typography>
+      <Stack direction="row" spacing={1} alignItems="center">
+        <Stack direction="column" spacing={0.5} alignItems="center">
+          <Typography variant="body2" color="text.secondary">
+            {title}
+          </Typography>
+          <Typography variant="h5" fontWeight={600} color={color || "text.primary"}>
+            {value}
+          </Typography>
+
+          {secondary && (
+            <Typography variant="body2" color="text.secondary">
+              {secondary}
+            </Typography>
+          )}
+
+          {percent !== undefined && percent > 0 && <Typography fontWeight={400} color="success.main">+ {percent.toFixed(1)}%</Typography>}
+          {percent !== undefined && percent < 0 && <Typography fontWeight={400} color="error.main">- {percent.toFixed(1)}%</Typography>}
+          {percent !== undefined && percent === 0 && <Typography fontWeight={400} color="warning.main">0%</Typography>}
+          {icon !== undefined && <Typography variant="h4" color={color}> {icon}</Typography>}
+
+        </Stack>
+        {trend === 1 && <Typography color="success.main">▲</Typography>}
+        {trend === -1 && <Typography color="error.main">▼</Typography>}
+        {trend === 0 && <Typography color="warning.main">■</Typography>}
+      </Stack>
     </Paper>
   );
 }

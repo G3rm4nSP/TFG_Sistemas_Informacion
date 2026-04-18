@@ -12,6 +12,14 @@ export class VentaDashboardService {
 
   async getDashboardData() {
 
+    const startYesterday = new Date();
+    startYesterday.setHours(0, 0, 0, 0);
+    startYesterday.setDate(startYesterday.getDate() - 1);
+
+    const endYesterday = new Date();
+    endYesterday.setDate(endYesterday.getDate() - 1);
+    endYesterday.setHours(23, 59, 59, 999);
+
     const startDay = new Date();
     startDay.setHours(0, 0, 0, 0);
 
@@ -22,17 +30,27 @@ export class VentaDashboardService {
     startMonth.setDate(1);
     startMonth.setHours(0, 0, 0, 0);
 
+    const startMonthAnterior = new Date();
+    startMonthAnterior.setDate(1);
+    startMonthAnterior.setMonth(startMonthAnterior.getMonth() - 1);
+    startMonthAnterior.setHours(0, 0, 0, 0);
+
     const last30Days = new Date();
     last30Days.setDate(last30Days.getDate() - 30);
 
     const [
       evolucion,
       ingresosHoy,
+      ingresosAyer,
       ingresosMes,
+      ingresosMesAnterior,
       ticketMedio,
+      ticketMedioMesAnterior,
       topEmpleadosBeneficios,
       topEmpleadosVentas,
-      topProductos
+      topProductos,
+      clientesNuevos,
+      stockBajo
     ] = await Promise.all([
 
       // Evolución diaria
@@ -55,6 +73,18 @@ export class VentaDashboardService {
         },
       }),
 
+      // Ingresos de ayer
+      this.prisma.venta.aggregate({
+        _sum: { total: true },
+        where: {
+          fecha: {
+            gte: startYesterday,
+            lte: endYesterday,
+          },
+        },
+      }),
+
+      
       // Ingresos del mes
       this.prisma.venta.aggregate({
         _sum: { total: true },
@@ -65,10 +95,38 @@ export class VentaDashboardService {
         },
       }),
 
-      // Ticket medio
+      // Ingresos mes anterior
+      this.prisma.venta.aggregate({
+        _sum: { total: true },
+        where: {
+          fecha: {
+            gte: startMonthAnterior,
+            lt: startMonth,
+          },
+        },
+      }),
+
+      // Ticket medio del mes
       this.prisma.venta.aggregate({
         _avg: { total: true },
+        where: {
+          fecha: {
+            gte: startMonth,
+          },
+        },
       }),
+
+      //Ticket medio del mes anterior
+      this.prisma.venta.aggregate({
+        _avg: { total: true },
+        where: {
+          fecha: {
+            gte:  startMonthAnterior,
+            lt: startMonth,
+          },
+        },
+      }),
+
 
       // Top empleados por beneficios
       this.prisma.$queryRaw`
@@ -102,6 +160,28 @@ export class VentaDashboardService {
         GROUP BY p.id, p.nombre
         ORDER BY cantidad DESC
         LIMIT 5
+      `,
+
+      // Clientes nuevos
+      this.prisma.cliente.count({
+        where: {
+          createdAt: {
+            gte: last30Days
+          }
+        }
+      }),
+
+      // Productos con stock bajo (menos de 10 unidades)
+      this.prisma.$queryRaw`
+        SELECT 
+          p.id,
+          p.nombre,
+          CAST(SUM(s.cantidad) AS INTEGER) as stock
+        FROM "Stock" s
+        JOIN "Producto" p ON s."productoId" = p.id
+        GROUP BY p.id, p.nombre
+        HAVING SUM(s.cantidad) < 20
+        ORDER BY stock ASC
       `
 
     ]);
@@ -109,11 +189,16 @@ export class VentaDashboardService {
     return {
       evolucion,
       ingresosHoy: Math.round((ingresosHoy._sum.total || 0) * 100) / 100,
+      ingresosAyer: Math.round((ingresosAyer._sum.total || 0) * 100) / 100,
       ingresosMes: Math.round((ingresosMes._sum.total || 0) * 100) / 100,
+      ingresosMesAnterior: Math.round((ingresosMesAnterior._sum.total || 0) * 100) / 100,
       ticketMedio: Math.round((ticketMedio._avg.total || 0) * 100) / 100,
+      ticketMedioMesAnterior: Math.round((ticketMedioMesAnterior._avg.total || 0) * 100) / 100,
       topEmpleadosBeneficios,
       topEmpleadosVentas,
-      topProductos
+      topProductos,
+      clientesNuevos,
+      stockBajo
     };
   }
 }
