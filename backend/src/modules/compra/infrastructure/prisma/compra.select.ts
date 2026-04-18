@@ -10,7 +10,7 @@ export const compraSelect = {
         select: {
             productoId: true,
             cantidad: true,
-            precioLote: true,
+            precioUnidad: true,
             producto: {
                 select: {
                     nombre: true,

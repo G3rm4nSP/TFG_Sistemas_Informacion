@@ -4,5 +4,5 @@ export const compraDetalleSelect = {
     compraId: true,
     productoId: true,
     cantidad: true,
-    precioLote: true,
+    precioUnidad: true,
 } satisfies Prisma.CompraDetalleSelect;

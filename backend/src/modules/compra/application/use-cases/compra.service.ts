@@ -22,6 +22,7 @@ export class CompraService {
         where: {
           localId,
           tipo: Ubi.ALMACEN,
+          descripcion: 'ENTREGAS'
         },
       });
 
@@ -40,7 +41,7 @@ export class CompraService {
           detalles: {
             create: detalles.map((detalle) => ({
               cantidad: detalle.cantidad,
-              precioLote: detalle.precioLote,
+              precioUnidad: detalle.precioUnidad,
               producto: { connect: { id: detalle.productoId } },
             })),
           },

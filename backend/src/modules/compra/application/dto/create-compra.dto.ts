@@ -7,7 +7,7 @@ export class CreateCompraDto {
     detalles!: {
         productoId: string;
         cantidad: number;
-        precioLote: number;
+        precioUnidad: number;
     }[];
 
     ubicacionId!: string;

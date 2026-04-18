@@ -34,7 +34,7 @@ interface CompraDetalle {
   compraId: string;
   productoId: string;
   cantidad: number;
-  precioLote: number;
+  precioUnidad: number;
   producto?: Producto;
 }
 
@@ -165,7 +165,7 @@ export default function PedidoProveedor() {
       detalles : carrito.map((detalle) => ({
         productoId: detalle.productoId,
         cantidad: detalle.cantidad,
-        precioLote: detalle.precioLote
+        precioUnidad: detalle.precioUnidad
       }))
     };
 
@@ -195,7 +195,7 @@ export default function PedidoProveedor() {
 
 
   const CalcularTotalCarrito = () => {
-    return carrito.reduce((total, detalle) => total + detalle.precioLote * detalle.cantidad, 0);
+    return carrito.reduce((total, detalle) => total + detalle.precioUnidad * detalle.cantidad, 0);
   };
 
   const agregarProducto = (producto: Producto) => {  
@@ -212,7 +212,7 @@ export default function PedidoProveedor() {
 
   const agregarDetalle = (detalle: CompraDetalle) => {
     formData.cantidad = detalle.cantidad;
-    formData.precioLote = detalle.precioLote;
+    formData.precioUnidad = detalle.precioUnidad;
     formData.nombre = detalle.producto?.nombre;
     setFormData({
       ...formData,
@@ -227,7 +227,7 @@ export default function PedidoProveedor() {
     for (let item of carrito) {
       if (item.productoId === formData.productoId) {
         item.cantidad = item.cantidad + formData.cantidad;
-        item.precioLote = formData.precioLote;
+        item.precioUnidad = parseFloat(formData.precioUnidad) || 0;
         setCarrito([...carrito]);
         setFormData({});
         setOpenFormCantidad(false);
@@ -240,7 +240,7 @@ export default function PedidoProveedor() {
       {
         productoId: formData.productoId,
         cantidad: Number(formData.cantidad),
-        precioLote: Number(formData.precioLote),
+        precioUnidad: Number(parseFloat(formData.precioUnidad) || 0),
         producto: formData.producto,
         compraId: "",
       }
@@ -294,7 +294,10 @@ export default function PedidoProveedor() {
                   Cantidad: {detalle.cantidad}
                 </Typography>
                 <Typography variant="body2">
-                  Precio lote: {detalle.precioLote}€
+                  Precio unidad: {detalle.precioUnidad}€
+                </Typography>
+                <Typography variant="body2">
+                  Precio lote: {detalle.precioUnidad * detalle.cantidad}€
                 </Typography>
               </Box>
 
@@ -333,7 +336,7 @@ export default function PedidoProveedor() {
                   <Stack spacing={2} mt={1}>
                     <Typography fontWeight={600}>{detalle.producto?.nombre}</Typography>
                     <Typography variant="body2">Descripcion: {detalle.producto?.descripcion}</Typography>
-                    <Typography variant="body2">Precio Unidad: {(detalle.precioLote).toFixed(2)} €</Typography>
+                    <Typography variant="body2">Precio Unidad: {(detalle.precioUnidad).toFixed(2)} €</Typography>
                   </Stack>
                   <Stack spacing={2} mt={1}>
                     <Stack direction="row" spacing={2} sx={{ mb: 4 }}>  
@@ -357,7 +360,7 @@ export default function PedidoProveedor() {
                         setCarrito([...carrito]);
                       }}> + </Button>
                     </Stack>
-                    <Typography variant="body2">Precio Total: {(detalle.precioLote * detalle.cantidad).toFixed(2)} €</Typography>
+                    <Typography variant="body2">Precio Total: {(detalle.precioUnidad * detalle.cantidad).toFixed(2)} €</Typography>
                   </Stack>
                 </Stack>
               </Paper>
@@ -536,16 +539,18 @@ export default function PedidoProveedor() {
               }
             />
             <TextField
-              label="Precio por lote"
-              value={formData.precioLote || ""}
+              label="Precio por unidad"
+              value={formData.precioUnidad ?? ""}
               onChange={(e) =>
                 setFormData({
-                  ...formData,  
-                  precioLote: parseFloat(e.target.value) || 0,
+                  ...formData,
+                  precioUnidad: e.target.value,
                 })
               }
+              type="text"
+              inputMode="decimal"
             />
-            <Typography variant="body2">Precio Total: {parseFloat(formData.precioLote || "0") * parseFloat(formData.cantidad || "0")} €</Typography>
+            <Typography variant="body2">Precio Total: {parseFloat(formData.precioUnidad || "0") * parseFloat(formData.cantidad || "0")} €</Typography>
           </Stack>
         </DialogContent>
 

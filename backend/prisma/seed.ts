@@ -23,7 +23,7 @@ async function main() {
     data: {
         localId: local.id,
         tipo: Ubi.ALMACEN,
-        descripcion: 'Almacen principal'
+        descripcion: 'ENTREGAS'
     }
   })
 

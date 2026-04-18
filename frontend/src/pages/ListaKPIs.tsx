@@ -39,7 +39,7 @@ export default function Home() {
   return (
     <Container>
       <Typography variant="h4" sx={{ marginBottom: 4 }}>
-        ERP - Panel Principal
+        ERP - Lista de KPIs
       </Typography>
 
       {usuarioCompleto && (
@@ -49,32 +49,12 @@ export default function Home() {
       )}
 
       <Stack spacing={2}>
-        <Button variant="contained" onClick={() => navigate("/login")}>
-          Login
+        <Button variant="contained" onClick={() => navigate("/listaKPIs/KPIsClave")}>
+          KPIs Clave
         </Button>
 
-        <Button variant="contained" onClick={() => navigate("/empleados")}>
-          Gestión de Empleados
-        </Button>
-
-        <Button variant="contained" onClick={() => navigate("/clientes")}>
-          Gestión de Clientes
-        </Button>
-
-        <Button variant="contained" onClick={() => navigate("/productos")}>
-          Gestión de Productos
-        </Button>
-
-        <Button variant="contained" onClick={() => navigate("/proveedores")}>
-          Gestión de Proveedores
-        </Button>
-
-        <Button variant="contained" onClick={() => navigate("/ventas")}>
-          Gestión de Ventas
-        </Button>
-
-        <Button variant="contained" onClick={() => navigate("/listaKPIs")}>
-          Lista KPIs
+        <Button variant="contained" onClick={() => navigate("/listaKPIs/KPIsVentas")}>
+          KPIs Ventas
         </Button>
       </Stack>
     </Container>

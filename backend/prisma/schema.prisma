@@ -180,7 +180,7 @@ model CompraDetalle{
   compraId    String
   productoId  String
   cantidad    Int
-  precioLote  Float
+  precioUnidad  Float
   
   compra      Compra    @relation(fields: [compraId], references: [id])
   producto    Producto  @relation(fields: [productoId], references: [id])
