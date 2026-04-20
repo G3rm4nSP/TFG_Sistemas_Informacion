@@ -15,6 +15,7 @@ export const compraSelect = {
                 select: {
                     nombre: true,
                     descripcion: true,
+                    expiracion: true,
                 }
             }
         }

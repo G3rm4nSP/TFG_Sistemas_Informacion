@@ -33,6 +33,7 @@ interface DetallesDashboard {
   topProductos : { nombre: string; cantidad: number }[];
   clientesNuevos : number;
   stockBajo : { nombre: string; cantidad: number }[];
+  caducidadProductos : { nombre: string; cantidad: number; expiracion: string }[];
 }
 
 function decodeToken(token: string) {
@@ -94,17 +95,13 @@ export default function DashboardGeneral() {
     <Box p={5}>
       <Paper sx={{ p: 4 }}>
         <Stack direction="row" spacing={10} mb={4} alignItems="center">
+          <Stack direction="column" spacing={5} flex={1}>
+            <TierList title="Top productos vendidos" unidades="uds" values={data.topProductos} />
+            <TierList title="Top ventas empleados" unidades="ventas" values={data.topEmpleadosVentas} />
+            <TierList title="Top beneficios empleados" unidades="€" values={data.topEmpleadosBeneficios} />
+          </Stack>
           <Stack direction="column" spacing={4} mb={4}>
-            <Stack direction="row" spacing={2} mb={4}>
-              <KPI title="Ingresos hoy" value={`${data.ingresosHoy} €`} secondary={`Hace un día(€): ${data.ingresosAyer} €`} 
-                trend={data.ingresosHoy > data.ingresosAyer ? 1 : data.ingresosHoy < data.ingresosAyer ? -1 : 0} />
-              <KPI title="Ingresos mes" value={`${data.ingresosMes} €`} secondary={`Mes anterior(€): ${data.ingresosMesAnterior} €`} 
-                trend={data.ingresosMes > data.ingresosMesAnterior ? 1 : data.ingresosMes < data.ingresosMesAnterior ? -1 : 0} />
-              <KPI title="Ticket medio" value={`${data.ticketMedio} €`} secondary="Mes anterior (%):"
-                percent={(data.ticketMedio - data.ticketMedioMesAnterior)/data.ticketMedioMesAnterior * 100 || 0} />
-              <KPI title="Clientes nuevos" value={`${data.clientesNuevos} personas`} icon="👤" />
-            </Stack>
-
+            < Typography variant="h4" mb={4}> 📊 Dashboard general</Typography>
             <Paper sx={{ p: 3, mb: 4 }}>
               <Stack direction="row" justifyContent='space-between' mb={2} alignItems="center">  
                 <Typography variant="h6" mb={2}>
@@ -139,26 +136,20 @@ export default function DashboardGeneral() {
                 </LineChart>
               </ResponsiveContainer>
             </Paper>
+            <Stack direction="row" spacing={2} mb={4}>
+              <KPI title="Ingresos hoy" value={`${data.ingresosHoy} €`} secondary={`Hace un día(€): ${data.ingresosAyer} €`} 
+                trend={data.ingresosHoy > data.ingresosAyer ? 1 : data.ingresosHoy < data.ingresosAyer ? -1 : 0} />
+              <KPI title="Ingresos mes" value={`${data.ingresosMes} €`} secondary={`Mes anterior(€): ${data.ingresosMesAnterior} €`} 
+                trend={data.ingresosMes > data.ingresosMesAnterior ? 1 : data.ingresosMes < data.ingresosMesAnterior ? -1 : 0} />
+              <KPI title="Ticket medio" value={`${data.ticketMedio} €`} secondary="Mes anterior (%):"
+                percent={(data.ticketMedio - data.ticketMedioMesAnterior)/data.ticketMedioMesAnterior * 100 || 0} />
+              <KPI title="Clientes nuevos" value={`${data.clientesNuevos} personas`} icon="👤" />
+            </Stack>
           </Stack>
 
-          <Stack direction="column" spacing={5} flex={1}>
-
-            <TierList title="Top productos vendidos" unidades="uds" values={data.topProductos} />
-            <TierList title="Top ventas empleados" unidades="ventas" values={data.topEmpleadosVentas} />
-            <TierList title="Top beneficios empleados" unidades="€" values={data.topEmpleadosBeneficios} />
-            <TierList title="⚠️ Stock bajo" unidades="uds" values={data.stockBajo} type="alert" />
-            {/* Stock bajo */}
-            <Paper sx={{ p: 2, flex: 1 }}>
-              <Typography variant="h6" mb={2}>
-                ⚠️ Stock bajo
-              </Typography>
-
-              {data.stockBajo.map((p: any) => (
-                <Typography key={p.id} color="error">
-                  {p.nombre} — {p.cantidad} uds
-                </Typography>
-              ))}
-            </Paper>
+          <Stack direction="column" spacing={3} flex={1}>
+            <TierList title="Alerta stock bajo" unidades="uds" values={data.stockBajo} alert={true} />
+            <TierList title="Alerta caducidad próxima" unidades="uds" values={data.caducidadProductos} alert={true} date= {true} />
           </Stack>
         </Stack>
       </Paper>
@@ -204,96 +195,67 @@ function KPI({ title, value, secondary, trend , percent, icon}: { title: string;
   );
 }
 
-// function TierList({title, unidades, values}: {title: string; unidades: string; values: any[]}) {
+function TierList({title, unidades, values, alert, date}: {title: string; unidades: string; values: any[]; alert?: boolean; date?: boolean}) {
 
-//   return (
-//     <Paper sx={{ p: 2, flex: 1 }}>
-//       <Typography variant="h6" mb={2}> {title} </Typography>
-
-//       {values.map((v: any, i: number) => (
-//         <Typography key={v.id}>
-//           {i + 1}. {v.nombre} — {v.cantidad && `${v.cantidad}` ||`0`} {unidades}
-//         </Typography>
-//       ))}
-//     </Paper>
-//   );
-// };
-
-function TierList({
-  title,
-  unidades,
-  values,
-  type = "default", // "default" | "money" | "alert"
-}: {
-  title: string;
-  unidades: string;
-  values: { nombre: string; cantidad: number }[];
-  type?: "default" | "money" | "alert";
-}) {
-  const max = Math.max(...values.map((v) => v.cantidad), 1);
+  const max = Math.max(...values.map(v => v.cantidad));
 
   return (
-    <Paper sx={{ p: 2 }}>
+    <Paper sx={{ p: 1, flex: 1 }}>
       <Typography variant="h6" mb={2}>
-        {title}
+        {alert ? "⚠️ " : ""} {title}
       </Typography>
 
-      <Stack spacing={1}>
-        {values.map((v, i) => {
-          const percent = (v.cantidad / max) * 100;
+      {values.map((v: any, i: number) => {
+        let color: "error" | "warning" | "success" = "warning";
 
-          let color = "primary.main";
+        if (date && v.expiracion) {
+          const diff = new Date(v.expiracion).getTime() - Date.now();
 
-          // 🎨 lógica de colores
-          if (type === "money") {
-            color = v.cantidad >= 0 ? "success.main" : "error.main";
-          }
+          if (diff < 3 * 24 * 60 * 60 * 1000) color = "error";
+          else if (diff < 7 * 24 * 60 * 60 * 1000) color = "warning";
+          else color = "success";
+        }
 
-          if (type === "alert") {
-            if (v.cantidad === 0) color = "error.main";
-            else if (v.cantidad < 5) color = "warning.main";
-          }
-
-          return (
-            <Box key={i}>
-              {/* Texto */}
-              <Stack direction="row" justifyContent="space-between">
-                <Typography variant="body2">
-                  {i + 1}. {v.nombre}
+        return (
+          <Box key={v.id}>
+            {!alert ? (
+              <>
+                <Typography>
+                  {i + 1}. {v.nombre} — {v.cantidad} {unidades}
                 </Typography>
 
-                <Typography variant="body2" fontWeight={600}>
-                  {v.cantidad} {unidades}
-                </Typography>
-              </Stack>
+                <Box sx={{height: 6, width: "100%", bgcolor: "grey.200", borderRadius: 2, mt: 0.5,}}>
+                  <Box sx={{ height: "100%", width: `${(v.cantidad / max) * 100}%`, bgcolor: "primary.main", borderRadius: 2,}}/>
+                </Box>
+              </>
+            ) : (
+              <>
+                {date && v.expiracion ? (
+                  <>
+                    <Typography variant="h6" color={color}>
+                      {i + 1}. {v.nombre} — {v.cantidad} {unidades}
+                    </Typography>
 
-              {/* Barra */}
-              <Box
-                sx={{
-                  height: 6,
-                  width: "100%",
-                  bgcolor: "grey.200",
-                  borderRadius: 2,
-                  mt: 0.5,
-                }}
-              >
-                <Box
-                  sx={{
-                    height: "100%",
-                    width: `${percent}%`,
-                    bgcolor: color,
-                    borderRadius: 2,
-                    transition: "0.3s",
-                  }}
-                />
-              </Box>
-            </Box>
-          );
-        })}
-      </Stack>
+                    <Typography variant="body2" color={color}>
+                      F.Cad {new Date(v.expiracion).toLocaleDateString("es-ES")}
+                    </Typography>
+                  </>
+                ) : (
+                  <Typography
+                    variant="h6"
+                    color={v.cantidad < 10 ? "error" : "warning"}
+                  >
+                    {i + 1}. {v.nombre} — {v.cantidad} {unidades}
+                  </Typography>
+                )}
+              </>
+            )}
+          </Box>
+        );
+      })}
     </Paper>
   );
-}
+};
 
 function CustomTooltip({ active, payload, label }: any) {
   if (active && payload && payload.length) {

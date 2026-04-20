@@ -331,6 +331,11 @@ export default function ProductosPage() {
                     <Stack spacing={2} mt={1}>
                       <Typography fontWeight={600}>{stock.producto.nombre}</Typography>
                       <Typography variant="body2">Descripcion: {stock.producto.descripcion}</Typography>
+                      {stock.producto.expiracion && (
+                        <Typography variant="body2" color="error">
+                          F.Cad: {new Date(stock.producto.expiracion).toLocaleDateString()}
+                        </Typography>
+                      )}
                       <Typography variant="body2">Precio Base: {stock.producto.precioBase.toFixed(2)} €</Typography>
                       {(stock.descuento ?? 0) > 0 && (<Typography variant="body2">Descuento: {stock.descuento?.toString()}%</Typography>)}
                       <Stack direction="row" spacing={2} sx={{ mb: 4 }}>
@@ -380,6 +385,11 @@ export default function ProductosPage() {
                     <Stack spacing={2} mt={1}>
                       <Typography fontWeight={600}>{stock.producto.nombre}</Typography>
                       <Typography variant="body2">Descripcion: {stock.producto.descripcion}</Typography>
+                      {stock.producto.expiracion && (
+                        <Typography variant="body2" color="error">
+                          F.Cad: {new Date(stock.producto.expiracion).toLocaleDateString()}
+                        </Typography>
+                      )}
                       <Typography variant="body2">Precio Base: {stock.producto.precioBase.toFixed(0)} €</Typography>
                       <Stack direction="row" spacing={2} sx={{ mb: 4 }}>
                         <Typography fontWeight={600}>Cantidad: </Typography>
@@ -420,6 +430,11 @@ export default function ProductosPage() {
                         <Typography fontWeight={600}>{producto.nombre}</Typography>
                         <Typography variant="body2">Descripcion: {producto.descripcion}</Typography>
                         <Typography variant="body2">Precio Base: {producto.precioBase.toFixed(2)} €</Typography>
+                        {producto.expiracion && (
+                          <Typography variant="body2" color="error">
+                           Producto perecedero
+                          </Typography>
+                        )}
                       </Stack>
                       <Stack spacing={2} mt={1}>
                         <Stack direction="row" spacing={2} sx={{ mb: 4 }}>
@@ -507,6 +522,27 @@ export default function ProductosPage() {
                 })
               }
             />
+
+            <Stack direction="row" spacing={2} sx={{ mb: 4 }}>
+              <Typography variant="h6" >Fecha de expiración?</Typography>
+              <Button variant="contained" color={formData.expiracion ? "error" : "success"} onClick={() => {
+                if (formData.expiracion) {
+                  setFormData({
+                    ...formData,
+                    expiracion: null,
+                  });
+                }
+                else {
+                  setFormData({
+                    ...formData,
+                    expiracion: new Date(),
+                  });
+                }
+              }}>
+                {formData.expiracion ? "No" : "Sí"}
+              </Button>
+            </Stack>
+
           </Stack>
         </DialogContent>
 

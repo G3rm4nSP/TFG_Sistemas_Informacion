@@ -16,6 +16,7 @@ import {
   Alert,
 } from "@mui/material";
 import { api } from "../api/axios";
+import { CheckBox } from "@mui/icons-material";
 
 interface Producto {
   id: string;
@@ -35,6 +36,7 @@ interface CompraDetalle {
   productoId: string;
   cantidad: number;
   precioUnidad: number;
+  expiracion?: Date;
   producto?: Producto;
 }
 
@@ -119,6 +121,7 @@ export default function PedidoProveedor() {
         ...detalle,
         fecha: compra.fecha,
         compraId: compra.id,
+        expiracion: detalle.producto?.expiracion,
       }))
     );
   }, [historicoCompras]);
@@ -199,25 +202,27 @@ export default function PedidoProveedor() {
   };
 
   const agregarProducto = (producto: Producto) => {  
-    formData.cantidad = 1;
-    formData.nombre = producto.nombre;
 
     setFormData({
       ...formData,
+      cantidad: 1,
+      nombre : producto.nombre,
       productoId: producto.id,
       producto: producto,
+      expiracion: producto.expiracion ? new Date(producto.expiracion) : null,
     });
     setOpenFormCantidad(true);
   }
 
   const agregarDetalle = (detalle: CompraDetalle) => {
-    formData.cantidad = detalle.cantidad;
-    formData.precioUnidad = detalle.precioUnidad;
-    formData.nombre = detalle.producto?.nombre;
     setFormData({
       ...formData,
+      cantidad: detalle.cantidad,
+      precioUnidad: detalle.precioUnidad,
+      nombre : detalle.producto?.nombre,
       productoId: detalle.productoId,
       producto: detalle.producto,
+      expiracion: detalle.expiracion ? new Date(detalle.expiracion) : null,
     });
     setOpenFormCantidad(true);
   }
@@ -228,6 +233,7 @@ export default function PedidoProveedor() {
       if (item.productoId === formData.productoId) {
         item.cantidad = item.cantidad + formData.cantidad;
         item.precioUnidad = parseFloat(formData.precioUnidad) || 0;
+        item.expiracion = formData.expiracion;
         setCarrito([...carrito]);
         setFormData({});
         setOpenFormCantidad(false);
@@ -242,6 +248,7 @@ export default function PedidoProveedor() {
         cantidad: Number(formData.cantidad),
         precioUnidad: Number(parseFloat(formData.precioUnidad) || 0),
         producto: formData.producto,
+        expiracion: formData.expiracion,
         compraId: "",
       }
     ]);
@@ -299,8 +306,12 @@ export default function PedidoProveedor() {
                 <Typography variant="body2">
                   Precio lote: {detalle.precioUnidad * detalle.cantidad}€
                 </Typography>
+                {detalle.expiracion && (
+                  <Typography variant="body2" color="error">
+                    Producto perecedero
+                  </Typography>
+                )}
               </Box>
-
               <Divider sx={{ my: 2 }} />
 
               <Button variant="contained" color="primary"
@@ -337,6 +348,11 @@ export default function PedidoProveedor() {
                     <Typography fontWeight={600}>{detalle.producto?.nombre}</Typography>
                     <Typography variant="body2">Descripcion: {detalle.producto?.descripcion}</Typography>
                     <Typography variant="body2">Precio Unidad: {(detalle.precioUnidad).toFixed(2)} €</Typography>
+                    {detalle.expiracion && (
+                      <Typography variant="body2" color="error">
+                        F.Cad: {new Date(detalle.expiracion).toLocaleDateString()}
+                      </Typography>
+                    )}
                   </Stack>
                   <Stack spacing={2} mt={1}>
                     <Stack direction="row" spacing={2} sx={{ mb: 4 }}>  
@@ -411,6 +427,11 @@ export default function PedidoProveedor() {
                     <Typography fontWeight={600}>{producto.nombre}</Typography>
                     <Typography variant="body2">Descripcion: {producto.descripcion}</Typography>
                     <Typography variant="body2">Precio Base: {producto.precioBase.toFixed(2)} €</Typography>
+                    {producto.expiracion && (
+                      <Typography variant="body2" color="error">
+                        Producto perecedero
+                      </Typography>
+                    )}
                   </Stack>
                   <Stack spacing={2} mt={1}>
                     <Typography fontWeight={600}>Cantidad en Stock</Typography>
@@ -501,6 +522,27 @@ export default function PedidoProveedor() {
                 })
               }
             />
+
+            <Stack direction="row" spacing={2} sx={{ mb: 4 }}>
+              <Typography variant="h6" >Fecha de expiración?</Typography>
+              <Button variant="contained" color={formData.expiracion ? "error" : "success"} onClick={() => {
+                if (formData.expiracion) {
+                  setFormData({
+                    ...formData,
+                    expiracion: null,
+                  });
+                }
+                else {
+                  setFormData({
+                    ...formData,
+                    expiracion: new Date(),
+                  });
+                }
+              }}>
+                {formData.expiracion ? "No" : "Sí"}
+              </Button>
+            </Stack>
+          
           </Stack>
         </DialogContent>
 
@@ -550,6 +592,23 @@ export default function PedidoProveedor() {
               type="text"
               inputMode="decimal"
             />
+            
+            {
+              formData.expiracion && (
+                <TextField
+              label="Fecha de expiración"
+              value={formData.expiracion ? new Date(formData.expiracion).toISOString().split('T')[0] : ""}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  expiracion: new Date(e.target.value),
+                })
+              }
+              type="date"
+            />
+              )
+            }
+
             <Typography variant="body2">Precio Total: {parseFloat(formData.precioUnidad || "0") * parseFloat(formData.cantidad || "0")} €</Typography>
           </Stack>
         </DialogContent>

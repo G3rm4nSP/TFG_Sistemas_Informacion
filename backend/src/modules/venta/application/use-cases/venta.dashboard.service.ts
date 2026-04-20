@@ -50,7 +50,8 @@ export class VentaDashboardService {
       topEmpleadosVentas,
       topProductos,
       clientesNuevos,
-      stockBajo
+      stockBajo,
+      caducidadProductos
     ] = await Promise.all([
 
       // Evolución diaria
@@ -182,10 +183,23 @@ export class VentaDashboardService {
         GROUP BY p.id, p.nombre
         HAVING SUM(s.cantidad) < 20
         ORDER BY cantidad ASC
-      `
+      `,
 
+      // Productos próximos a caducar (en los próximos 30 días)
+      this.prisma.$queryRaw`
+        SELECT 
+          p.id,
+          p.nombre,
+          p.expiracion,
+          s.cantidad
+        FROM "Stock" s
+        JOIN "Producto" p ON s."productoId" = p.id
+        WHERE 
+          p.expiracion IS NOT NULL
+          AND p.expiracion <= NOW() + INTERVAL '30 days'
+        ORDER BY p.expiracion ASC
+      `,
     ]);
-
     return {
       evolucion,
       ingresosHoy: Math.round((ingresosHoy._sum.total || 0) * 100) / 100,
@@ -198,7 +212,8 @@ export class VentaDashboardService {
       topEmpleadosVentas,
       topProductos,
       clientesNuevos,
-      stockBajo
+      stockBajo,
+      caducidadProductos
     };
   }
 }
