@@ -2,15 +2,13 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../../prisma/prisma.service';
-import { ventaSelect } from '../../infrastructure/prisma/venta.select';
-
 
 @Injectable()
-export class VentaDashboardService {
+export class GeneralDashboardService {
   
   constructor(private prisma: PrismaService) {}
 
-  async getDashboardData() {
+  async getGeneralDashboardData() {
 
     const startYesterday = new Date();
     startYesterday.setHours(0, 0, 0, 0);

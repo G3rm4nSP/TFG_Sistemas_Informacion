@@ -3,19 +3,7 @@ import {
   Box,
   Typography,
   Paper,
-  Button,
-  Stack,
-  TextField,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Snackbar,
-  Alert,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
+  Stack
 } from "@mui/material";
 import { LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer} from "recharts";
 import { api } from "../api/axios";
@@ -79,7 +67,7 @@ export default function DashboardGeneral() {
 
   const fetchData = async () => {
     try {
-      const res = await api.get("/venta/dashboard");
+      const res = await api.get("/dashboard/general");
       setData(res.data);
     } catch (err) {
       console.error("Error al cargar datos del dashboard", err);

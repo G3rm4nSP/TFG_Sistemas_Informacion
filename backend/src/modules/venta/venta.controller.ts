@@ -1,6 +1,5 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete ,UseGuards } from '@nestjs/common';
 import { VentaService } from './application/use-cases/venta.service';
-import { VentaDashboardService } from './application/use-cases/venta.dashboard.service';
 import { CreateVentaDto } from './application/dto/create-venta.dto';
 import { UpdateVentaDto } from './application/dto/update-venta.dto';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
@@ -8,7 +7,7 @@ import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 @UseGuards(JwtAuthGuard)
 @Controller('venta')
 export class VentaController {
-  constructor(private readonly ventaService: VentaService, private readonly ventaDashboardService: VentaDashboardService) {}
+  constructor(private readonly ventaService: VentaService) {}
 
   @Post()
   create(@Body() createVentaDto: CreateVentaDto) {
@@ -18,11 +17,6 @@ export class VentaController {
   @Get()
   findAll() {
     return this.ventaService.findAll();
-  }
-
-  @Get('dashboard')
-  getDashboardData() {
-    return this.ventaDashboardService.getDashboardData();
   }
 
   @Get(':id')

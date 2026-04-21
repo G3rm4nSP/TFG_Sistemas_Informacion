@@ -18,6 +18,7 @@ import { EmpleadoHorarioModule } from './modules/empleado-horario/empleado-horar
 import { EmpleadoRrhhModule } from './modules/empleado-rrhh/empleado-rrhh.module';
 import { EmpleadoAusenciaModule } from './modules/empleado-ausencia/empleado-ausencia.module';
 import { AuthModule } from './auth/auth.module';
+import { DashboardModule } from './modules/dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -36,7 +37,9 @@ import { AuthModule } from './auth/auth.module';
     CompraDetalleModule, 
     EmpleadoHorarioModule, 
     EmpleadoRrhhModule, 
-    EmpleadoAusenciaModule, AuthModule
+    EmpleadoAusenciaModule,
+    DashboardModule,
+    AuthModule
   ],
   controllers: [AppController],
   providers: [AppService],
