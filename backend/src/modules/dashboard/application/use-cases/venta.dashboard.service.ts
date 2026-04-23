@@ -18,90 +18,71 @@ export class VentaDashboardService {
     const prev30Days = new Date();
     prev30Days.setDate(now.getDate() - 60);
     
-    const [
-      ventasPorDia,
-      ventasPorEmpleado,
-      ventasPorLocal,
-      ventasProductos,
-    ] = await Promise.all([
-
-      // Ventas por dia (ESTA SE QUEDA IGUAL)
-      this.prisma.$queryRaw`
-        SELECT 
-          DATE("fecha") as fecha,
-          CAST(SUM(total) AS NUMERIC) as total, 
-          CAST(COUNT(id) AS INTEGER) as ventas, 
-          CAST(AVG(total) AS NUMERIC) as ticketMedio,
-          CAST(SUM(total) - LAG(SUM(total)) OVER (ORDER BY DATE("fecha")) AS NUMERIC) as fluctuacion         
+    const result: any = await this.prisma.$queryRaw`
+      WITH ventas_filtradas AS (
+        SELECT *
         FROM "Venta"
-        WHERE fecha >= ${last30Days}
-        GROUP BY DATE("fecha")
-        ORDER BY fecha ASC
-      `,
+        WHERE fecha >= ${prev30Days}
+      ),
 
-      // Ventas por empleado 
-      this.prisma.$queryRaw`
+      ventas_dia AS (
+        SELECT 
+          DATE(v.fecha) as fecha,
+          SUM(v.total) as total,
+          COUNT(v.id) as ventas, 
+          SUM(v.total) - LAG(SUM(v.total)) OVER (ORDER BY DATE(v.fecha)) as fluctuacion        
+        FROM ventas_filtradas as v
+        WHERE fecha >= ${last30Days}
+        GROUP BY DATE(v.fecha)
+        ORDER BY fecha ASC
+      ),
+
+      ventas_empleado AS (
         SELECT 
           e.nombre, 
-          CAST(SUM(CASE WHEN v.fecha >= ${last30Days} 
-            THEN v.total ELSE 0 END) AS NUMERIC) as total_actual,
-          CAST(SUM(CASE WHEN v.fecha >= ${prev30Days} 
-            AND v.fecha < ${last30Days} THEN v.total ELSE 0 END) AS NUMERIC) as total_anterior,
-          CAST(COUNT(CASE WHEN v.fecha >= ${last30Days} 
-            THEN v.id END) AS INTEGER) as ventas,
-          CAST(AVG(CASE WHEN v.fecha >= ${last30Days} 
-            THEN v.total END) AS NUMERIC) as ticketMedio
-        FROM "Venta" v
+          SUM(CASE WHEN v.fecha >= ${last30Days} THEN v.total ELSE 0 END) as total_actual,
+          SUM(CASE WHEN v.fecha >= ${prev30Days} AND v.fecha < ${last30Days} THEN v.total ELSE 0 END) as total_anterior,
+          COUNT(CASE WHEN v.fecha >= ${last30Days} THEN v.id END) as ventas,
+          AVG(CASE WHEN v.fecha >= ${last30Days} THEN v.total END) as ticketMedio
+        FROM ventas_filtradas v
         JOIN "Empleado" e ON v."empleadoId" = e.id
-        WHERE v.fecha >= ${prev30Days}
         GROUP BY e.nombre
-      `,
+      ),
 
-      // Ventas por local
-      this.prisma.$queryRaw`
+      ventas_local AS (
         SELECT 
           l.nombre, 
-          CAST(SUM(CASE WHEN v.fecha >= ${last30Days} 
-            THEN v.total ELSE 0 END) AS NUMERIC) as total_actual,
-          CAST(SUM(CASE WHEN v.fecha >= ${prev30Days} 
-            AND v.fecha < ${last30Days} THEN v.total ELSE 0 END) AS NUMERIC) as total_anterior,
-          CAST(COUNT(CASE WHEN v.fecha >= ${last30Days} 
-            THEN v.id END) AS INTEGER) as ventas,
-          CAST(AVG(CASE WHEN v.fecha >= ${last30Days} 
-            THEN v.total END) AS NUMERIC) as ticketMedio
-        FROM "Venta" v
+          SUM(CASE WHEN v.fecha >= ${last30Days} THEN v.total ELSE 0 END) as total_actual,
+          SUM(CASE WHEN v.fecha >= ${prev30Days} AND v.fecha < ${last30Days} THEN v.total ELSE 0 END) as total_anterior,
+          COUNT(CASE WHEN v.fecha >= ${last30Days} THEN v.id END) as ventas,
+          AVG(CASE WHEN v.fecha >= ${last30Days} THEN v.total END) as ticketMedio
+        FROM ventas_filtradas v
         JOIN "Local" l ON v."localId" = l.id
-        WHERE v.fecha >= ${prev30Days}
         GROUP BY l.nombre
-      `,
+      ),
 
-      // Productos vendidos 
-      this.prisma.$queryRaw`
+      ventas_productos AS (
         SELECT 
           p.id,
-          p.nombre, 
-          CAST(SUM(CASE WHEN v.fecha >= ${last30Days} 
-            THEN vd.cantidad ELSE 0 END) AS INTEGER) as cantidad_actual,
-          CAST(SUM(CASE WHEN v.fecha >= ${prev30Days} 
-            AND v.fecha < ${last30Days} THEN vd.cantidad ELSE 0 END) AS INTEGER) as cantidad_anterior,
-          CAST(SUM(CASE WHEN v.fecha >= ${last30Days} 
-            THEN vd.cantidad * vd."precioFinal" ELSE 0 END) AS NUMERIC) as total,
-          CAST(AVG(CASE WHEN v.fecha >= ${last30Days} 
-            THEN vd."precioFinal" END) AS NUMERIC) as precioMedio
-        FROM "VentaDetalle" vd 
-        JOIN "Venta" v ON vd."ventaId" = v.id
+          p.nombre,
+          SUM(CASE WHEN v.fecha >= ${last30Days} THEN vd.cantidad ELSE 0 END) as cantidad_actual,
+          SUM(CASE WHEN v.fecha >= ${prev30Days} AND v.fecha < ${last30Days} THEN vd.cantidad ELSE 0 END) as cantidad_anterior,
+          SUM(CASE WHEN v.fecha >= ${last30Days} THEN vd.cantidad * vd."precioFinal" ELSE 0 END) as total,
+          AVG(CASE WHEN v.fecha >= ${last30Days} THEN vd."precioFinal" END) as precioMedio
+        FROM "VentaDetalle" vd
+        JOIN ventas_filtradas v ON vd."ventaId" = v.id
         JOIN "Producto" p ON vd."productoId" = p.id
-        WHERE v.fecha >= ${prev30Days}
         GROUP BY p.id, p.nombre
-        ORDER BY cantidad_actual DESC
-      `,
-    ]);
+      )
 
-    return {
-      ventasPorDia,
-      ventasPorEmpleado,
-      ventasPorLocal,
-      ventasProductos
-    };
+      SELECT json_build_object(
+        'ventasPorDia', (SELECT json_agg(ventas_dia) FROM ventas_dia),
+        'ventasPorEmpleado', (SELECT json_agg(ventas_empleado) FROM ventas_empleado),
+        'ventasPorLocal', (SELECT json_agg(ventas_local) FROM ventas_local),
+        'ventasProductos', (SELECT json_agg(ventas_productos) FROM ventas_productos)
+      ) as data
+    `;
+    
+    return result[0].data;
   }
 }

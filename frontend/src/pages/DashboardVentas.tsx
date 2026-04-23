@@ -5,29 +5,22 @@ import {
   Paper,
   Stack,
 } from "@mui/material";
-import { LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer, BarChart, Bar, Pie, Legend, Cell} from "recharts";
+import {
+  LineChart, Line, XAxis, YAxis, Tooltip,
+  CartesianGrid, ResponsiveContainer,
+  BarChart, Bar, Legend
+} from "recharts";
 import { api } from "../api/axios";
-import { PieChart } from "@mui/icons-material";
 
 interface DetallesDashboard {
-  ventasPorDia: { fecha: string; total: number; ventas: number; ticketMedio: number; fluctuacion: number }[]; 
-  ventasPorEmpleado: {nombre: string; total_actual: number; total_anterior: number; ventas: number; ticketMedio: number}[];
-  ventasPorLocal: {nombre: string; total_actual: number; total_anterior: number; ventas: number; ticketMedio: number}[];
-  ventasProductos: {nombre: string; cantidad_actual: number; cantidad_anterior: number; total: number; precioMedio: number}[];
-}
-
-function decodeToken(token: string) {
-  try {
-    const payload = token.split(".")[1];
-    return JSON.parse(atob(payload));
-  } catch {
-    return null;
-  }
+  ventasPorDia: any[];
+  ventasPorEmpleado: any[];
+  ventasPorLocal: any[];
+  ventasProductos: any[];
 }
 
 function completarDias(evolucion: any[]) {
-  const resultado: { fecha: string; total: number; ventas: number }[] = [];
-
+  const resultado: any[] = [];
   const hoy = new Date();
 
   for (let i = 29; i >= 0; i--) {
@@ -40,10 +33,15 @@ function completarDias(evolucion: any[]) {
       (e) => e.fecha.split("T")[0] === fechaStr
     );
 
+    const total = encontrado ? Number(encontrado.total) : 0;
+    const ventas = encontrado ? Number(encontrado.ventas) : 0;
+
     resultado.push({
       fecha: fechaStr,
-      total: encontrado ? Number(encontrado.total) : 0,
-      ventas: encontrado ? Number(encontrado.ventas) : 0,
+      total,
+      ventas,
+      ticketMedio: ventas ? total / ventas : 0,
+      fluctuacion: encontrado ? Number(encontrado.fluctuacion) : 0,
     });
   }
 
@@ -58,63 +56,84 @@ export default function DashboardVentas() {
   }, []);
 
   const fetchData = async () => {
-    try {
-      const res = await api.get("/dashboard/venta");
-      setData(res.data);
-    } catch (err) {
-      console.error("Error al cargar datos del dashboard", err);
-    }
+    const res = await api.get("/dashboard/venta");
+    setData(res.data);
   };
-
 
   if (!data) return null;
 
   const evolucionCompleta = completarDias(data.ventasPorDia);
+
+  // 🔥 ALERTAS
+  const alertas: string[] = [];
+
+  data.ventasPorEmpleado.forEach(e => {
+    if (e.total_actual < e.total_anterior) {
+      alertas.push(`Empleado ${e.nombre} ha bajado ventas`);
+    }
+  });
+
+  data.ventasProductos.forEach(p => {
+    if (p.cantidad_actual < p.cantidad_anterior) {
+      alertas.push(`Producto ${p.nombre} ha bajado ventas`);
+    }
+  });
+
+  data.ventasPorLocal.forEach(l => {
+    if (l.total_actual < l.total_anterior) {
+      alertas.push(`Local ${l.nombre} ha bajado ventas`);
+    }
+  });
+
   return (
     <Box p={5}>
-      <Paper sx={{ p: 4 }}>
-        < Typography variant="h4" mb={4}> 📊 Dashboard ventas</Typography>
-          <DiagramaPersonalizado title="Ventas diarias" type="line" data={evolucionCompleta}/>
-      </Paper>
-    </Box>
-  );
-}
+      <Typography variant="h4" mb={4}>📊 Dashboard ventas</Typography>
 
-function KPI({ title, value, secondary, trend , percent, icon}: { title: string; value: any; secondary?: string; trend?: number, percent?: number, icon?: string }) {
-  let color: "success" | "error" | "warning" | "info" | "primary" | "secondary" | undefined;
+      <Stack direction="row" spacing={2} mb={4}>
 
-  if (trend === 1) color = "success";
-  else if (trend === -1) color = "error";
-  else if (trend === 0) color = "warning";
+        <DiagramaPersonalizado
+            title="Ventas diarias"
+            type="line"
+            data={evolucionCompleta}
+          />
 
-  return (
-    <Paper sx={{ p: 2, flex: 1 }}>
-      <Stack direction="row" spacing={1} alignItems="center">
-        <Stack direction="column" spacing={0.5} alignItems="center">
-          <Typography variant="body2" color="text.secondary">
-            {title}
-          </Typography>
-          <Typography variant="h5" fontWeight={600} color={color || "text.primary"}>
-            {value}
-          </Typography>
+          <DiagramaPersonalizado
+            title="Ventas por empleado"
+            type="bar"
+            data={data.ventasPorEmpleado}
+          />
 
-          {secondary && (
-            <Typography variant="body2" color="text.secondary">
-              {secondary}
-            </Typography>
+          {data.ventasPorLocal.length > 1 && (
+            <DiagramaPersonalizado
+              title="Ventas por local"
+              type="bar"
+              data={data.ventasPorLocal}
+            />
           )}
 
-          {percent !== undefined && percent > 0 && <Typography fontWeight={400} color="success.main">+ {percent.toFixed(1)}%</Typography>}
-          {percent !== undefined && percent < 0 && <Typography fontWeight={400} color="error.main">- {percent.toFixed(1)}%</Typography>}
-          {percent !== undefined && percent === 0 && <Typography fontWeight={400} color="warning.main">0%</Typography>}
-          {icon !== undefined && <Typography variant="h4" color={color}> {icon}</Typography>}
-
-        </Stack>
-        {trend === 1 && <Typography color="success.main">▲</Typography>}
-        {trend === -1 && <Typography color="error.main">▼</Typography>}
-        {trend === 0 && <Typography color="warning.main">■</Typography>}
+          <DiagramaPersonalizado
+            title="Ventas por producto"
+            type="bar"
+            data={data.ventasProductos}
+            isProduct
+          />
       </Stack>
-    </Paper>
+      <Paper sx={{ p: 3 }}>
+            <Typography variant="h6" mb={2}>⚠️ Alertas</Typography>
+
+            {alertas.length === 0 && (
+              <Typography color="success.main">
+                Todo va bien 👍
+              </Typography>
+            )}
+
+            {alertas.map((a, i) => (
+              <Typography key={i} color="error.main">
+                • {a}
+              </Typography>
+            ))}
+          </Paper>
+    </Box>
   );
 }
 
@@ -122,143 +141,114 @@ function DiagramaPersonalizado({
   title,
   data,
   type,
-  xKey = "fecha",
-  yKey = "total",
-  secondary,
-  trend,
-  percent,
-  icon,
-}: {  title: string; data: any[]; type: "line" | "bar" | "pie"; xKey?: string; yKey?: string; secondary?: string; trend?: number; percent?: number; icon?: string }) {
-  const COLORS = ["#1976d2", "#42a5f5", "#90caf9", "#0d47a1"];
+  isProduct
+}: {
+  title: string;
+  data: any[];
+  type: "line" | "bar";
+  isProduct?: boolean;
+}) {
 
-  return (
-  <Paper sx={{ p: 3, mb: 4 }}>
-                <Stack direction="row" justifyContent='space-between' mb={2} alignItems="center">  
-                  <Typography variant="h6" mb={2}>{title}</Typography>
-                </Stack>
-                <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={data}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis
-                      dataKey="fecha"
-                      tickFormatter={(value) =>
-                        new Date(value).toLocaleDateString("es-ES", {
-                          day: "2-digit",
-                          //month: "2-digit",
-                        })
-                      }
-                    />
-                    <YAxis />
-                    <Tooltip content={<CustomTooltip />} />
-                    <Line
-                      type="monotone"
-                      dataKey="total"
-                      stroke="#1976d2"
-                      strokeWidth={2}
-                      dot={false}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </Paper>
-              );
-}
-
-
-function TierList({title, unidades, values, alert, date}: {title: string; unidades: string; values: any[]; alert?: boolean; date?: boolean}) {
-
-  const max = Math.max(...values.map(v => v.cantidad));
-
-  return (
-    <Paper sx={{ p: 1, flex: 1 }}>
-      <Typography variant="h6" mb={2}>
-        {alert ? "⚠️ " : ""} {title}
-      </Typography>
-
-      {values.map((v: any, i: number) => {
-        let color: "error" | "warning" | "success" = "warning";
-
-        if (date && v.expiracion) {
-          const diff = new Date(v.expiracion).getTime() - Date.now();
-
-          if (diff < 3 * 24 * 60 * 60 * 1000) color = "error";
-          else if (diff < 7 * 24 * 60 * 60 * 1000) color = "warning";
-          else color = "success";
-        }
-
-        return (
-          <Box key={v.id}>
-            {!alert ? (
-              <>
-                <Typography>
-                  {i + 1}. {v.nombre} — {v.cantidad} {unidades}
-                </Typography>
-
-                <Box sx={{height: 6, width: "100%", bgcolor: "grey.200", borderRadius: 2, mt: 0.5,}}>
-                  <Box sx={{ height: "100%", width: `${(v.cantidad / max) * 100}%`, bgcolor: "primary.main", borderRadius: 2,}}/>
-                </Box>
-              </>
-            ) : (
-              <>
-                {date && v.expiracion ? (
-                  <>
-                    <Typography variant="h6" color={color}>
-                      {i + 1}. {v.nombre} — {v.cantidad} {unidades}
-                    </Typography>
-
-                    <Typography variant="body2" color={color}>
-                      F.Cad {new Date(v.expiracion).toLocaleDateString("es-ES")}
-                    </Typography>
-                  </>
-                ) : (
-                  <Typography
-                    variant="h6"
-                    color={v.cantidad < 10 ? "error" : "warning"}
-                  >
-                    {i + 1}. {v.nombre} — {v.cantidad} {unidades}
-                  </Typography>
-                )}
-              </>
-            )}
-          </Box>
-        );
-      })}
-    </Paper>
+  const total = data.reduce((acc, d) =>
+    acc + (d.total || d.cantidad_actual || 0), 0
   );
-};
 
-function CustomTooltip({ active, payload, label }: any) {
-  if (active && payload && payload.length) {
-    const data = payload[0].payload;
-    const trend = data.fluctuacion;
-    if (data.total === 0 && data.ventas === 0) return null;
+  if (type === "line") {
     return (
-      <Paper sx={{ p: 1 }}>
-        <Stack>
-          <Typography variant="body2">
-            {new Date(label).toLocaleDateString("es-ES")}
-          </Typography>
-
-          {trend !== undefined && trend > 0 && <Typography color="success.main">▲</Typography>}
-          {trend !== undefined && trend < 0 && <Typography color="error.main">▼</Typography>}
-          {trend !== undefined && trend === 0 && <Typography color="warning.main">■</Typography>}
-          {trend === undefined && <Typography color="warning.main">■</Typography>}
-
+      <Paper sx={{ p: 3, mb: 4 }}>
+        <Stack direction="row" justifyContent="space-between">
+          <Typography variant="h6">{title}</Typography>
+          <Typography fontWeight={600}>€ {total.toFixed(2)}</Typography>
         </Stack>
-        <Typography color="primary">
-          💰 {data.total} €
-        </Typography>
 
-        <Typography color="text.secondary">
-          🧾 {data.ventas} ventas
-        </Typography>
+        <ResponsiveContainer width="100%" height={300}>
+          <LineChart data={data}>
+            <CartesianGrid strokeDasharray="3 3" />
 
-        <Typography color="text.secondary">
-          🧾 {data.ticketMedio?.toFixed(2)} € promedio
-        </Typography>
+            <XAxis
+              dataKey="fecha"
+              tickFormatter={(v) =>
+                new Date(v).toLocaleDateString("es-ES", { day: "2-digit" })
+              }
+            />
 
+            <YAxis />
+
+            <Tooltip content={({ active, payload, label }: any) => {
+              if (!active || !payload?.length) return null;
+              const d = payload[0].payload;
+
+              return (
+                <Paper sx={{ p: 1 }}>
+                  <Typography>
+                    {new Date(label).toLocaleDateString("es-ES")}
+                  </Typography>
+                  <Typography>💰 {d.total}€</Typography>
+                  <Typography>🧾 {d.ventas}</Typography>
+                  <Typography>🎟️ {d.ticketMedio.toFixed(2)}€</Typography>
+                </Paper>
+              );
+            }}/>
+
+            <Line dataKey="total" stroke="#1976d2" strokeWidth={2} dot={false}/>
+          </LineChart>
+        </ResponsiveContainer>
       </Paper>
     );
   }
 
-  return null;
+  // 🔥 BARRAS COMPARATIVAS
+  const formatted = data.map(d => {
+    const actual = isProduct ? d.cantidad_actual : d.total_actual;
+    const anterior = isProduct ? d.cantidad_anterior : d.total_anterior;
+    const ventas = d.ventas || actual;
+
+    return {
+      nombre: d.nombre,
+      actual,
+      anterior,
+      ticket: ventas ? actual / ventas : 0,
+      ventas
+    };
+  });
+
+  return (
+    <Paper sx={{ p: 3, mb: 4 }}>
+      <Stack direction="row" justifyContent="space-between">
+        <Typography variant="h6">{title}</Typography>
+        <Typography fontWeight={600}>{total}</Typography>
+      </Stack>
+
+      <ResponsiveContainer width="100%" height={300}>
+        <BarChart data={formatted}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="nombre" />
+          <YAxis />
+
+          <Tooltip content={({ active, payload }: any) => {
+            if (!active || !payload?.length) return null;
+
+            const d = payload[0].payload;
+
+            return (
+              <Paper sx={{ p: 1 }}>
+                <Typography>{d.nombre}</Typography>
+                <Typography>📊 {d.actual} ventas</Typography>
+                <Typography>🎟️ {d.ticket.toFixed(2)}€</Typography>
+              </Paper>
+            );
+          }}/>
+
+          <Legend />
+
+          {/* MES ACTUAL */}
+          <Bar dataKey="actual" fill="#1976d2" />
+
+          {/* MES ANTERIOR */}
+          <Bar dataKey="anterior" fill="#4caf50" />
+
+        </BarChart>
+      </ResponsiveContainer>
+    </Paper>
+  );
 }
