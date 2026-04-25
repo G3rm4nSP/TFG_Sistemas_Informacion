@@ -10,6 +10,7 @@ import Ventas from "./pages/Ventas"
 import ListaDashboards from "./pages/ListaDashboards"
 import DashboardVentas from "./pages/DashboardVentas"
 import DashboardGeneral from "./pages/DashboardGeneral"
+import DashboardStock from "./pages/DashboardStock"
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
         <Route path="/listaDashboards" element={<ListaDashboards/>} />
         <Route path="/listaDashboards/DashboardVentas" element={<DashboardVentas/>} />
         <Route path="/listaDashboards/DashboardGeneral" element={<DashboardGeneral/>} />
+        <Route path="/listaDashboards/DashboardStock" element={<DashboardStock/>} />
       </Routes>
     </BrowserRouter>
   );

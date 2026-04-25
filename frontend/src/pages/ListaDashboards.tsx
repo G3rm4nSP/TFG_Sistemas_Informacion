@@ -56,6 +56,10 @@ export default function Home() {
         <Button variant="contained" onClick={() => navigate("/listaDashboards/DashboardVentas")}>
           Dashboard Ventas
         </Button>
+
+        <Button variant="contained" onClick={() => navigate("/listaDashboards/DashboardStock")}>
+          Dashboard Stock
+        </Button>
       </Stack>
     </Container>
   );
