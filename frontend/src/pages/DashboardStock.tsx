@@ -1,51 +1,21 @@
 import { useEffect, useState } from "react";
+import { Box, Typography, Paper, Stack } from "@mui/material";
 import {
-  Box,
-  Typography,
-  Paper,
-  Stack,
-} from "@mui/material";
-import {
-  LineChart, Line, XAxis, YAxis, Tooltip,
+  XAxis, YAxis, Tooltip,
   CartesianGrid, ResponsiveContainer,
-  BarChart, Bar, Legend
+  BarChart, Bar
 } from "recharts";
 import { api } from "../api/axios";
 
 interface DetallesDashboard {
-  ventasPorDia: any[];
-  ventasPorEmpleado: any[];
-  ventasPorLocal: any[];
-  ventasProductos: any[];
-}
-
-function completarDias(evolucion: any[]) {
-  const resultado: any[] = [];
-  const hoy = new Date();
-
-  for (let i = 29; i >= 0; i--) {
-    const fecha = new Date();
-    fecha.setDate(hoy.getDate() - i);
-
-    const fechaStr = fecha.toISOString().split("T")[0];
-
-    const encontrado = evolucion.find(
-      (e) => e.fecha.split("T")[0] === fechaStr
-    );
-
-    const total = encontrado ? Number(encontrado.total) : 0;
-    const ventas = encontrado ? Number(encontrado.ventas) : 0;
-
-    resultado.push({
-      fecha: fechaStr,
-      total,
-      ventas,
-      ticketMedio: ventas ? total / ventas : 0,
-      fluctuacion: encontrado ? Number(encontrado.fluctuacion) : 0,
-    });
-  }
-
-  return resultado;
+  mayorStock: any[];
+  stockBajo: any[];
+  proximosAExpirar: any[];
+  stockPorColocar: any[];
+  valorTotal: number;
+  maximoBeneficio: number;
+  productosPocasVentas: any[];
+  rotacionStock: any[];
 }
 
 export default function DashboardStock() {
@@ -62,193 +32,167 @@ export default function DashboardStock() {
 
   if (!data) return null;
 
-  const evolucionCompleta = completarDias(data.ventasPorDia);
-
-  // 🔥 ALERTAS
-  const alertas: string[] = [];
-
-  data.ventasPorEmpleado.forEach(e => {
-    if (e.total_actual < e.total_anterior) {
-      alertas.push(`Empleado ${e.nombre} ha bajado ventas`);
-    }
-  });
-
-  data.ventasProductos.forEach(p => {
-    if (p.cantidad_actual < p.cantidad_anterior) {
-      alertas.push(`Producto ${p.nombre} ha bajado ventas`);
-    }
-  });
-
-  data.ventasPorLocal.forEach(l => {
-    if (l.total_actual < l.total_anterior) {
-      alertas.push(`Local ${l.nombre} ha bajado ventas`);
-    }
-  });
-
   return (
     <Box p={5}>
-      <Typography variant="h4" mb={4}>📊 Dashboard ventas</Typography>
+      <Paper sx={{ p: 4 }}>
+        <Stack direction="row" spacing={10} alignItems="center">
 
-      <Stack direction="row" spacing={2} mb={4}>
+          <Stack direction="column" spacing={4} flex={1.5}>
+            <Typography variant="h4">📊 Dashboard stock</Typography>
 
-        <DiagramaPersonalizado
-            title="Ventas diarias"
-            type="line"
-            data={evolucionCompleta}
-          />
+            <Paper sx={{ p: 3 }}>
+              <Stack direction="row" justifyContent="space-between" mb={2}>
+                <Typography variant="h6">
+                  Productos con mayor stock
+                </Typography>
+                <Typography variant="h6" color="text.secondary">
+                  📦 {data.mayorStock?.length || 0}
+                </Typography>
+              </Stack>
 
-          <DiagramaPersonalizado
-            title="Ventas por empleado"
-            type="bar"
-            data={data.ventasPorEmpleado}
-          />
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={data.mayorStock ?? []}>
+                  <CartesianGrid strokeDasharray="3 3" />
 
-          {data.ventasPorLocal.length > 1 && (
-            <DiagramaPersonalizado
-              title="Ventas por local"
-              type="bar"
-              data={data.ventasPorLocal}
-            />
-          )}
+                  <XAxis
+                    dataKey="nombre"
+                    tickFormatter={(t) =>
+                      t ? (t.length > 10 ? `${t.slice(0, 10)}...` : t) : ""
+                    }
+                  />
 
-          <DiagramaPersonalizado
-            title="Ventas por producto"
-            type="bar"
-            data={data.ventasProductos}
-            isProduct
-          />
-      </Stack>
-      <Paper sx={{ p: 3 }}>
-            <Typography variant="h6" mb={2}>⚠️ Alertas</Typography>
+                  <YAxis />
 
-            {alertas.length === 0 && (
-              <Typography color="success.main">
-                Todo va bien 👍
-              </Typography>
-            )}
+                  <Tooltip content={<CustomTooltip />} />
 
-            {alertas.map((a, i) => (
-              <Typography key={i} color="error.main">
-                • {a}
-              </Typography>
-            ))}
-          </Paper>
+                  <Bar dataKey="total_stock" fill="#1976d2" />
+                </BarChart>
+              </ResponsiveContainer>
+            </Paper>
+
+            <Stack direction="row" spacing={2}>
+              <KPI title="Máximo beneficio" value={`${data.maximoBeneficio.toFixed(2)} €`} />
+              <KPI title="Valor stock" value={`${data.valorTotal} €`} />
+            </Stack>
+          </Stack>
+
+          <Stack direction="column" spacing={3} flex={1}>
+            <TierList title="Stock bajo" unidades="uds" values={data.stockBajo} type="stock" />
+            <TierList title="Caducidad próxima" unidades="uds" values={data.proximosAExpirar} type="date" />
+            <TierList title="Sin colocar" unidades="uds" values={data.stockPorColocar} type="stock" />
+            <TierList title="Pocas ventas" unidades="uds" values={data.productosPocasVentas} type="sales" />
+            <TierList title="Rotación" unidades="" values={data.rotacionStock} type="rotation" />
+          </Stack>
+
+        </Stack>
+      </Paper>
     </Box>
   );
 }
 
-function DiagramaPersonalizado({
+function KPI({ title, value }: { title: string; value: any }) {
+  return (
+    <Paper sx={{ p: 2, flex: 1 }}>
+      <Stack alignItems="center">
+        <Typography variant="body2" color="text.secondary">
+          {title}
+        </Typography>
+        <Typography variant="h5" fontWeight={600}>
+          {value}
+        </Typography>
+      </Stack>
+    </Paper>
+  );
+}
+
+function TierList({
   title,
-  data,
-  type,
-  isProduct
+  unidades,
+  values,
+  type
 }: {
   title: string;
-  data: any[];
-  type: "line" | "bar";
-  isProduct?: boolean;
+  unidades: string;
+  values?: any[] | null;
+  type: "stock" | "date" | "sales" | "rotation";
 }) {
 
-  const total = data.reduce((acc, d) =>
-    acc + (d.total || d.cantidad_actual || 0), 0
+  const safeValues = values ?? [];
+
+  const getColor = (v: any): "error" | "warning" | "success" => {
+
+    if (type === "date" && v.expiracion) {
+      const diff = new Date(v.expiracion).getTime() - Date.now();
+      if (diff < 5 * 86400000) return "error";
+      if (diff < 15 * 86400000) return "warning";
+      return "success";
+    }
+
+    if (type === "rotation") {
+      const r = v.rotacion ?? 0;
+      if (r <= 0.5) return "error";
+      if (r <= 1) return "warning";
+      return "success";
+    }
+
+    if (type === "sales") {
+      const c = v.cantidad_vendida ?? 0;
+      if (c < 5) return "error";
+      if (c < 10) return "warning";
+      return "success";
+    }
+
+    const c = v.cantidad ?? v.total_stock ?? 0;
+    if (c < 10) return "error";
+    if (c < 20) return "warning";
+    return "success";
+  };
+
+  return (
+    <Paper sx={{ p: 2 }}>
+      <Typography variant="h6" mb={2}>⚠️ {title}</Typography>
+
+      {safeValues.length === 0 && (
+        <Typography color="text.secondary">Sin datos</Typography>
+      )}
+
+      {safeValues.map((v: any, i: number) => {
+        const color = getColor(v);
+
+        return (
+          <Box key={v.id} mb={1}>
+            <Typography color={`${color}.main`}>
+              {i + 1}. {v.nombre} — {
+                type === "rotation"
+                  ? (v.rotacion ?? 0).toFixed(2)
+                  : type === "sales"
+                  ? v.cantidad_vendida ?? 0
+                  : v.cantidad ?? v.total_stock ?? 0
+              } {unidades}
+            </Typography>
+
+            {type === "date" && v.expiracion && (
+              <Typography variant="body2" color={`${color}.main`}>
+                {new Date(v.expiracion).toLocaleDateString("es-ES")}
+              </Typography>
+            )}
+          </Box>
+        );
+      })}
+    </Paper>
   );
+}
 
-  if (type === "line") {
+function CustomTooltip({ active, payload }: any) {
+  if (active && payload && payload.length) {
+    const d = payload[0].payload;
+
     return (
-      <Paper sx={{ p: 3, mb: 4 }}>
-        <Stack direction="row" justifyContent="space-between">
-          <Typography variant="h6">{title}</Typography>
-          <Typography fontWeight={600}>€ {total.toFixed(2)}</Typography>
-        </Stack>
-
-        <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" />
-
-            <XAxis
-              dataKey="fecha"
-              tickFormatter={(v) =>
-                new Date(v).toLocaleDateString("es-ES", { day: "2-digit" })
-              }
-            />
-
-            <YAxis />
-
-            <Tooltip content={({ active, payload, label }: any) => {
-              if (!active || !payload?.length) return null;
-              const d = payload[0].payload;
-
-              return (
-                <Paper sx={{ p: 1 }}>
-                  <Typography>
-                    {new Date(label).toLocaleDateString("es-ES")}
-                  </Typography>
-                  <Typography>💰 {d.total}€</Typography>
-                  <Typography>🧾 {d.ventas}</Typography>
-                  <Typography>🎟️ {d.ticketMedio.toFixed(2)}€</Typography>
-                </Paper>
-              );
-            }}/>
-
-            <Line dataKey="total" stroke="#1976d2" strokeWidth={2} dot={false}/>
-          </LineChart>
-        </ResponsiveContainer>
+      <Paper sx={{ p: 1 }}>
+        <Typography>{d.nombre}</Typography>
+        <Typography>📦 {d.total_stock} uds</Typography>
       </Paper>
     );
   }
-
-  // 🔥 BARRAS COMPARATIVAS
-  const formatted = data.map(d => {
-    const actual = isProduct ? d.cantidad_actual : d.total_actual;
-    const anterior = isProduct ? d.cantidad_anterior : d.total_anterior;
-    const ventas = d.ventas || actual;
-
-    return {
-      nombre: d.nombre,
-      actual,
-      anterior,
-      ticket: ventas ? actual / ventas : 0,
-      ventas
-    };
-  });
-
-  return (
-    <Paper sx={{ p: 3, mb: 4 }}>
-      <Stack direction="row" justifyContent="space-between">
-        <Typography variant="h6">{title}</Typography>
-        <Typography fontWeight={600}>{total}</Typography>
-      </Stack>
-
-      <ResponsiveContainer width="100%" height={300}>
-        <BarChart data={formatted}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="nombre" />
-          <YAxis />
-
-          <Tooltip content={({ active, payload }: any) => {
-            if (!active || !payload?.length) return null;
-
-            const d = payload[0].payload;
-
-            return (
-              <Paper sx={{ p: 1 }}>
-                <Typography>{d.nombre}</Typography>
-                <Typography>📊 {d.actual} ventas</Typography>
-                <Typography>🎟️ {d.ticket.toFixed(2)}€</Typography>
-              </Paper>
-            );
-          }}/>
-
-          <Legend />
-
-          {/* MES ACTUAL */}
-          <Bar dataKey="actual" fill="#1976d2" />
-
-          {/* MES ANTERIOR */}
-          <Bar dataKey="anterior" fill="#4caf50" />
-
-        </BarChart>
-      </ResponsiveContainer>
-    </Paper>
-  );
+  return null;
 }

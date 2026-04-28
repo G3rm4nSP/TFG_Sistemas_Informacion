@@ -117,6 +117,7 @@ model Stock {
   productoId   String
   ubicacionId  String
   cantidad     Int
+  valor        Float
   descuento    Float?
   updatedAt    DateTime  @updatedAt
 

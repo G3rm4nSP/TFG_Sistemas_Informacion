@@ -27,6 +27,7 @@ interface Stock {
   updatedAt: Date;
   producto: Producto;
   ubicacion: Ubicacion;
+  valor: number;
   
 }
 
@@ -239,9 +240,11 @@ export default function ProductosPage() {
     setUbisAMover(stocks.filter(s => s.producto.id === stock.producto.id && s.ubicacion.tipo !== stock.ubicacion.tipo),
 )
     setMovido({
+      cantidadTotal : stock.cantidad,
       cantidad: 1,
       productoId: stock.producto.id,
       nombre: stock.producto.nombre,
+      valor: stock.valor,
       destinoUbicacionId: ""
     })
     setOpenFormMoverStock(true);
@@ -253,6 +256,7 @@ export default function ProductosPage() {
         productoId: movido.productoId,
         destinoUbicacionId: ubicacionId,
         cantidad: movido.cantidad,
+        valor: (movido.valor/movido.cantidadTotal)*movido.cantidad,
       };
 
       await api.patch(`/stock/mover/${origenId}`, payload);
@@ -348,6 +352,10 @@ export default function ProductosPage() {
                       <Typography variant="body2">Local: {stock.ubicacion.local.nombre}</Typography>
                       <Typography variant="body2">Ubicacion: {stock.ubicacion.tipo}</Typography>
                       <Typography variant="body2">Zona: {stock.ubicacion.descripcion}</Typography>
+                      <Stack direction="row" spacing={2} sx={{ mb: 4 }}>
+                          <Typography fontWeight={600}>Valor: </Typography>
+                          <Typography variant="body2">{stock.valor || 0} €</Typography>
+                        </Stack>
                     </Stack>                  
                   </Stack>
                   <Stack  direction = "row" spacing={2} mt={1}>
@@ -401,6 +409,10 @@ export default function ProductosPage() {
                       <Typography variant="body2">Local: {stock.ubicacion.local.nombre}</Typography>
                       <Typography variant="body2">Ubicacion: {stock.ubicacion.tipo}</Typography>
                       <Typography variant="body2">Zona: {stock.ubicacion.descripcion}</Typography>
+                      <Stack direction="row" spacing={2} sx={{ mb: 4 }}>
+                        <Typography fontWeight={600}>Valor: </Typography>
+                        <Typography variant="body2">{stock.valor || 0} €</Typography>
+                      </Stack>
                     </Stack>                     
                   </Stack>
                   <Stack  direction = "row" spacing={2} mt={1}>

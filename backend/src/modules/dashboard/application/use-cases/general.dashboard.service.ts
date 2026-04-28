@@ -54,7 +54,10 @@ export class GeneralDashboardService {
 
       // Evolución diaria
       this.prisma.$queryRaw`
-        SELECT DATE("fecha") as fecha, CAST(SUM(total) AS FLOAT) as total, CAST(COUNT(id) AS INTEGER) as ventas
+        SELECT 
+          DATE("fecha") as fecha, 
+          CAST(SUM(total) AS FLOAT) as total, 
+          CAST(COUNT(id) AS INTEGER) as ventas
         FROM "Venta"
         WHERE "fecha" >= ${last30Days}
         GROUP BY DATE("fecha")
@@ -129,7 +132,10 @@ export class GeneralDashboardService {
 
       // Top empleados por beneficios
       this.prisma.$queryRaw`
-        SELECT e.id, e.nombre, e.apellidos, ROUND(SUM(v.total)::numeric, 2) as cantidad
+        SELECT 
+          e.id, e.nombre, 
+          e.apellidos, 
+          ROUND(SUM(v.total)::numeric, 2) as cantidad
         FROM "Venta" v
         JOIN "Empleado" e ON v."empleadoId" = e.id
         WHERE v."fecha" >= ${last30Days}
@@ -140,7 +146,10 @@ export class GeneralDashboardService {
 
       // Top empleados por ventas
       this.prisma.$queryRaw`
-        SELECT e.id, e.nombre, e.apellidos, CAST(COUNT(v.id) AS INTEGER) as cantidad
+        SELECT 
+          e.id, e.nombre, 
+          e.apellidos, 
+          CAST(COUNT(v.id) AS INTEGER) as cantidad
         FROM "Venta" v
         JOIN "Empleado" e ON v."empleadoId" = e.id
         WHERE v."fecha" >= ${last30Days}
@@ -151,7 +160,9 @@ export class GeneralDashboardService {
 
       // Top productos vendidos
       this.prisma.$queryRaw`
-        SELECT p.id, p.nombre, CAST(SUM(vd.cantidad) AS INTEGER) as cantidad
+        SELECT 
+          p.id, p.nombre, 
+          CAST(SUM(vd.cantidad) AS INTEGER) as cantidad
         FROM "VentaDetalle" vd 
         JOIN "Venta" v ON vd."ventaId" = v.id
         JOIN "Producto" p ON vd."productoId" = p.id

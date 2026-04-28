@@ -62,11 +62,15 @@ export class CompraService {
             cantidad: {
               increment: detalle.cantidad,
             },
+            valor: {
+              increment: detalle.cantidad * detalle.precioUnidad,
+            },
           },
           create: {
             productoId: detalle.productoId,
             ubicacionId: ubicacionAlmacen.id,
             cantidad: detalle.cantidad,
+            valor: detalle.cantidad * detalle.precioUnidad,
           },
         });
 

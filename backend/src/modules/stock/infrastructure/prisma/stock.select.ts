@@ -5,6 +5,7 @@ export const stockSelect = {
     productoId: true,
     ubicacionId: true,
     cantidad: true,
+    valor: true,
     descuento: true,
     updatedAt: true,
     producto : true,

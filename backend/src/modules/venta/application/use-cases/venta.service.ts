@@ -66,6 +66,9 @@ export class VentaService {
               cantidad: {
                 decrement: detalle.cantidad,
               },
+              valor: {
+                decrement: detalle.cantidad * detalle.precioSinIVA,
+              },
             },
           })
         )

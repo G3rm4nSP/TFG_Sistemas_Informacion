@@ -80,6 +80,9 @@ export class StockService {
             cantidad: {
               decrement: moverStockDto.cantidad,
             },
+            valor: {
+              decrement: moverStockDto.valor,
+            },
           },
         }),
 
@@ -94,11 +97,15 @@ export class StockService {
             cantidad: {
               increment: moverStockDto.cantidad,
             },
+            valor: {
+              increment: moverStockDto.valor,
+            }
           },
           create: {
             productoId: moverStockDto.productoId,
             ubicacionId: moverStockDto.destinoUbicacionId,
             cantidad: moverStockDto.cantidad,
+            valor: moverStockDto.valor,
           },
         }),
       ])
