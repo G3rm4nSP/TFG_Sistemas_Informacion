@@ -2,6 +2,7 @@ import { Button, Container, Typography, Stack } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { api } from "../api/axios";
 import { useEffect, useState } from "react";
+import { logout } from "./Login";
 
 function decodeToken(token: string) {
   try {
@@ -38,10 +39,32 @@ export default function Home() {
 
   return (
     <Container>
-      <Typography variant="h4" sx={{ marginBottom: 4 }}>
-        ERP - Lista de Dashboards
-      </Typography>
+      <Stack direction="row" justifyContent="space-between" mb={2}>
 
+        <Typography variant="h4" sx={{ marginBottom: 4 }}>
+          ERP - Lista de Dashboards
+        </Typography>
+
+        <Stack direction="column" spacing={2}>
+
+          <Button variant="contained" onClick={() => logout(navigate)}>
+            Cerrar sesión
+          </Button>
+
+          {user?.rol === "VENTAS" && (
+            <Button variant="contained" onClick={() => navigate("/ventas")}>
+              Volver a ventas
+            </Button>
+          )}
+
+          {user?.rol === "JEFE" && (
+            <Button variant="contained" onClick={() => navigate("/home")}>
+              Volver atras
+            </Button>
+          )}
+        </Stack>
+        
+      </Stack>
       {usuarioCompleto && (
         <Typography sx={{ mb: 3 }}>
           Bienvenido, {usuarioCompleto.empleado.nombre} {usuarioCompleto.empleado.apellidos}
@@ -49,17 +72,25 @@ export default function Home() {
       )}
 
       <Stack spacing={2}>
-        <Button variant="contained" onClick={() => navigate("/listaDashboards/DashboardGeneral")}>
-          Dashboard General
-        </Button>
+        {(user?.rol === "JEFE" || user?.rol === "ADMIN") && (
+          <Button variant="contained" onClick={() => navigate("/listaDashboards/DashboardGeneral")}>
+            Dashboard General
+          </Button>
+        )}
 
-        <Button variant="contained" onClick={() => navigate("/listaDashboards/DashboardVentas")}>
-          Dashboard Ventas
-        </Button>
+        {(user?.rol === "JEFE" || user?.rol === "VENTAS") && (
+          <Button variant="contained" onClick={() => navigate("/listaDashboards/DashboardVentas")}>
+            Dashboard Ventas
+          </Button>
+        )}
 
-        <Button variant="contained" onClick={() => navigate("/listaDashboards/DashboardStock")}>
-          Dashboard Stock
-        </Button>
+        {(user?.rol === "JEFE" || user?.rol === "VENTAS") && (
+          <Button variant="contained" onClick={() => navigate("/listaDashboards/DashboardStock")}>
+            Dashboard Stock
+          </Button>
+        )}
+        
+
       </Stack>
     </Container>
   );

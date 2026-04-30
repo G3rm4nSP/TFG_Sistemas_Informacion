@@ -18,6 +18,8 @@ export class StockDashboardService {
     const prev30Days = new Date();
     prev30Days.setDate(now.getDate() - 60);
     
+    //ubicaciones especificas de donde todos los stocks en esos productos(ubicacion tipo y descripcion)
+    
     const result: any = await this.prisma.$queryRaw`
     WITH producto_total AS (
       SELECT id, nombre, "precioBase", expiracion
@@ -36,7 +38,7 @@ export class StockDashboardService {
         SUM(vd.cantidad) as ventas
       FROM "VentaDetalle" vd
       JOIN "Venta" v ON vd."ventaId" = v.id
-      WHERE v.fecha >= ${prev30Days} AND v.fecha < ${last30Days}
+      WHERE v.fecha >= ${last30Days} AND v.fecha <= ${now}
       GROUP BY vd."productoId"
     ),
 
@@ -49,7 +51,6 @@ export class StockDashboardService {
       GROUP BY "productoId"
     ),
 
-    //ubicaciones especificas de donde todos los stocks en esos productos(ubicacion tipo y descripcion)
     mayor_stock AS (
       SELECT 
         p.id, 
@@ -97,7 +98,10 @@ export class StockDashboardService {
       JOIN producto_total p ON p.id = s."productoId"
       JOIN "Ubicacion" u ON s."ubicacionId" = u.id
       GROUP BY p.id, p.nombre
-      HAVING SUM(CASE WHEN u.tipo = 'TIENDA' THEN s.cantidad ELSE 0 END) < 20
+      HAVING 
+        SUM(CASE WHEN u.tipo = 'ALMACEN' THEN s.cantidad ELSE 0 END) > 0
+        AND
+        SUM(CASE WHEN u.tipo = 'TIENDA' THEN s.cantidad ELSE 0 END) < 20
       ORDER BY cantidad_tienda ASC
     ),
 

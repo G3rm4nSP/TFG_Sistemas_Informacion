@@ -18,6 +18,8 @@ import {
   MenuItem,
 } from "@mui/material";
 import { api } from "../api/axios";
+import { logout } from "./Login";
+import { useNavigate } from "react-router-dom";
 interface Stock {
   id: string;
   stockId: string;
@@ -125,6 +127,8 @@ export default function Ventas() {
   const token = localStorage.getItem("accessToken");
   const user = token ? decodeToken(token) : null;
   const [usuarioCompleto, setUsuarioCompleto] = useState<any>(null);
+
+  const navigate = useNavigate();
 
  
   useEffect(() => {
@@ -275,9 +279,51 @@ export default function Ventas() {
   return (
     <Box p={5}>
       <Paper  sx={{ p: 10 }}>
-        <Typography variant="h4" mb={4} fontWeight={600}>
-          Ventas al clientes
-        </Typography>
+        <Stack direction="row" justifyContent="space-between" mb={2}>
+        
+          <Typography variant="h4" sx={{ marginBottom: 4 }}>
+            Ventas - Panel Principal
+          </Typography>
+        
+          <Stack direction="column" spacing={2}>
+            <Button variant="contained" onClick={() => logout(navigate)}>
+              Cerrar sesión
+            </Button>
+          
+            {user?.rol === "VENTAS" && (
+              <Button variant="contained" onClick={() => navigate("/productos")}>
+                Stock
+              </Button>
+            )}
+
+            {user?.rol === "VENTAS" && (
+              <Button variant="contained" onClick={() => navigate("/proveedores")}>
+                Realizar pedido
+              </Button>
+            )}
+
+            
+            {user?.rol === "VENTAS" && (
+              <Button variant="contained" onClick={() => navigate("/listaDashboards")}>
+                Lista Dashboards
+              </Button>
+            )}
+
+            {user?.rol === "VENTAS" && (
+              <Button variant="contained" onClick={() => navigate("/empleados")}>
+                Lista Empleados
+              </Button>
+            )}
+
+            {user?.rol === "JEFE" && (
+              <Button variant="contained" onClick={() => navigate("/home")}>
+                Volver atras
+              </Button>
+            )}
+
+          </Stack>
+           
+        </Stack>
     
         <Stack direction="row" spacing={2} sx={{ mb: 4 }}>
           <Button variant="contained" color="warning" onClick={() => setOpenFormVenta(true)}> Nueva Venta </Button>

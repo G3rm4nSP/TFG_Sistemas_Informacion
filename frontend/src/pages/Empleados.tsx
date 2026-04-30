@@ -21,6 +21,8 @@ import {
   InputLabel,
 } from "@mui/material";
 import { api } from "../api/axios";
+import { logout } from "./Login";
+import { useNavigate } from "react-router-dom";
 
 interface Empleado {
   id?: string;
@@ -63,6 +65,7 @@ export default function EmpleadosPage() {
   const token = localStorage.getItem("accessToken");
   const user = token ? decodeToken(token) : null;
 
+  const navigate = useNavigate();
   useEffect(() => {
     fetchEmpleados();
   }, []);
@@ -159,10 +162,31 @@ export default function EmpleadosPage() {
 
   return (
     <Box p={5}>
-      <Typography variant="h4" mb={4} fontWeight={600}>
-        Gestión de Empleados
-      </Typography>
+        <Stack direction="row" justifyContent="space-between" mb={2}>
+        
+          <Typography variant="h4" sx={{ marginBottom: 4 }}>
+            Empleados - Panel Principal
+          </Typography>
+        
+          <Stack direction="column" spacing={2}>
+            <Button variant="contained" onClick={() => logout(navigate)}>
+              Cerrar sesión
+            </Button>
 
+            {user?.rol === "VENTAS" && (
+              <Button variant="contained" onClick={() => navigate("/ventas")}>
+                Volver a ventas
+              </Button>
+            )}
+
+            {user?.rol === "JEFE" && (
+            <Button variant="contained" onClick={() => navigate("/home")}>
+              Volver Atras
+            </Button>
+            )}
+          </Stack>
+           
+        </Stack>
       
       <Stack direction="row" spacing={2} sx={{ mb: 4, alignItems: "center" }}>
         <TextField

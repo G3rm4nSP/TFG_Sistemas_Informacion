@@ -8,6 +8,13 @@ import {
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
+export const logout = (navigate: any) => {
+  localStorage.removeItem("accessToken");
+  localStorage.removeItem("refreshToken");
+
+  navigate("/login");
+};
+
 export default function Login() {
   const navigate = useNavigate();
 

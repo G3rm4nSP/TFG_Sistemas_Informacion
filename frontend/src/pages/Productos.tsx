@@ -18,6 +18,8 @@ import {
   MenuItem,
 } from "@mui/material";
 import { api } from "../api/axios";
+import { logout } from "./Login";
+import { useNavigate } from "react-router-dom";
 interface Stock {
   id: string;
   stockId: string;
@@ -91,6 +93,7 @@ export default function ProductosPage() {
   const [ubisAMover, setUbisAMover] = useState<Stock[]>([]);
   const [editingProducto, setEditingProducto] = useState<Producto | null>(null);
 
+  const navigate = useNavigate();
 
   const token = localStorage.getItem("accessToken");
   const user = token ? decodeToken(token) : null;
@@ -176,21 +179,7 @@ export default function ProductosPage() {
     const ubi = await api.post ("/ubicacion", payloadUbi);
     setSuccessMsg("Ubicacion creada correctamente");
 
-    // Mover stock directamente con la nueva ubicación
-    const payloadMove = {
-      productoId: movido?.productoId,
-      destinoUbicacionId: ubi.data.id,
-      cantidad: movido?.cantidad,
-    };
-
-    try {
-      await api.patch(`/stock/mover/${origenId}`, payloadMove);
-      setSuccessMsg("Stock movido correctamente");
-    } catch (error) {
-      console.error("Error moviendo stock:", error);
-      setErrorMsg("Error al mover el stock. Inténtalo de nuevo.");
-    }
-
+    handleMoveStock(ubi.data.id); 
     setOpenFormNuevaUbicacion(false);
     setOpenListaUbicaciones(false);
     fetchStock();
@@ -306,9 +295,33 @@ export default function ProductosPage() {
   return (
     <Box p={5}>
       <Paper sx={{ p: 2 }}>
-        <Typography variant="h4" mb={4} fontWeight={600}>
-          Catalogo de productos
-        </Typography>
+        <Stack direction="row" justifyContent="space-between" mb={2}>
+        
+                <Typography variant="h4" sx={{ marginBottom: 4 }}>
+                  Stock - Panel Principal
+                </Typography>
+        
+                <Stack direction="column" spacing={2}>
+        
+                  <Button variant="contained" onClick={() => logout(navigate)}>
+                    Cerrar sesión
+                  </Button>
+        
+                  {user?.rol === "VENTAS" && (
+                    <Button variant="contained" onClick={() => navigate("/ventas")}>
+                      Volver a ventas
+                    </Button>
+                  )}
+
+                  {user?.rol === "JEFE" && (
+                    <Button variant="contained" onClick={() => navigate("/home")}>
+                      Volver atras
+                    </Button>
+                  )}
+
+                </Stack>
+                
+              </Stack>
     
         <Stack direction="row" spacing={2} sx={{ mb: 4 }}>
           <TextField
@@ -398,7 +411,7 @@ export default function ProductosPage() {
                           F.Cad: {new Date(stock.producto.expiracion).toLocaleDateString()}
                         </Typography>
                       )}
-                      <Typography variant="body2">Precio Base: {stock.producto.precioBase.toFixed(0)} €</Typography>
+                      <Typography variant="body2">Precio Base: {stock.producto.precioBase.toFixed(2)} €</Typography>
                       <Stack direction="row" spacing={2} sx={{ mb: 4 }}>
                         <Typography fontWeight={600}>Cantidad: </Typography>
                         <Typography variant="body2">{stock.cantidad || 0}</Typography>

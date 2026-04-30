@@ -148,6 +148,17 @@ function TierList({
     return "success";
   };
 
+  const allSuccess =
+  safeValues.length > 0 &&
+  safeValues.every((v) => getColor(v) === "success");
+
+  if (allSuccess) {
+    return (
+      <Paper sx={{ p: 2 }}>
+        <Typography variant="h6">👍 Todo correcto</Typography>
+      </Paper>
+    );
+  } 
   return (
     <Paper sx={{ p: 2 }}>
       <Typography variant="h6" mb={2}>⚠️ {title}</Typography>
@@ -167,6 +178,8 @@ function TierList({
                   ? (v.rotacion ?? 0).toFixed(2)
                   : type === "sales"
                   ? v.cantidad_vendida ?? 0
+                  : type === "stock" && v.cantidad_tienda !== undefined
+                  ? v.cantidad_tienda
                   : v.cantidad ?? v.total_stock ?? 0
               } {unidades}
             </Typography>
