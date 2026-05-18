@@ -6,7 +6,7 @@ export class AppService {
   constructor(private prisma: PrismaService) {}
 
   helpMessage(): string {
-    return 'Welcome to the ERP-RPI backend! Available endpoints: /users, /products, /sales, /auth ';
+    return 'Welcome to the ERP-RPI backend! \nAvailable endpoints: /users, /products, /sales, /auth ';
   }
 
 }

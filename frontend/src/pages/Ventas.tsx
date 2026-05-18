@@ -149,8 +149,12 @@ export default function Ventas() {
   };
 
   const fetchUsuario = async () => {
-    const usr = await api.get(`/usuario/${user.sub}`);
-    setUsuarioCompleto(usr.data);
+    try {
+      const usr = await api.get(`/usuario/${user.sub}`);
+      setUsuarioCompleto(usr.data); 
+    } catch (error) {
+      navigate("/login");
+    }
   };
 
 
@@ -220,6 +224,27 @@ export default function Ventas() {
       setErrorMsg("Error realizando la venta. Inténtalo de nuevo.");      
     }
     setOpenFormVenta(false);
+  };
+
+  const actualizarCantidad = ( productoId: string,nuevaCantidad: number ) => {
+    const stockMax =
+      stocks.find(
+        (s) =>
+          s.producto.id === productoId &&
+          s.ubicacion.tipo === "TIENDA"
+      )?.cantidad ?? 0;
+
+    nuevaCantidad = Math.max(0, Math.min(nuevaCantidad, stockMax));
+
+    const nuevoCarrito = carrito
+      .map((d) =>
+        d.productoId === productoId
+          ? { ...d, cantidad: nuevaCantidad }
+          : d
+      )
+      .filter((d) => d.cantidad > 0);
+
+    setCarrito(nuevoCarrito);
   };
 
   const agregarAlCarrito = (carri : Carrito) => {
@@ -510,47 +535,23 @@ export default function Ventas() {
                         <Typography variant="body2">Descripcion: {detalle.producto?.descripcion}</Typography>
                         <Typography variant="body2">Precio Base: {(detalle.precioSinIva).toFixed(2)} €</Typography>
                         <Typography variant="body2">IVA: {(detalle.producto.porcentajeIVA).toString()} %</Typography>
-                        <Typography variant="body2">Descuento: {(detalle.descuento??0).toString()} %</Typography>
+                        {detalle.descuento!=0 && <Typography variant="body2">Descuento: {(detalle.descuento??0).toString()} %</Typography>}
                         <Typography variant="body2">Precio Final: {(detalle.precioFinal).toFixed(2)} €</Typography>
                       </Stack>
                       <Stack spacing={2} mt={1}>
-                        <Stack direction="row" spacing={2} sx={{ mb: 4 }}>  
-                          <Button variant="contained" color="error" onClick={() => {
-                            detalle.cantidad = Math.max(0, detalle.cantidad - 1);
-                            if (detalle.cantidad === 0) {
-                              carrito.splice(carrito.findIndex(d => d.productoId === detalle.productoId), 1);
-                            } 
-                            setCarrito([...carrito]);
+                        <Stack direction="row" spacing={2} sx={{ mb: 4 }}>
+                          
+                          <Button variant="contained" color="error" 
+                            onClick={() => actualizarCantidad( detalle.productoId, detalle.cantidad - 1)}
+                          > - </Button>
 
-                          }}> - </Button>
-                          <TextField value={ detalle.cantidad}  onChange={(e) => {
-                            let nuevaCantidad = parseInt(e.target.value) || 0;
-                            const stockMax = stocks.find(
-                              s => s.producto.id === detalle.productoId &&
-                              s.ubicacion.tipo === "TIENDA"
-                            )?.cantidad ?? 0;
-                            if (nuevaCantidad < 0) nuevaCantidad = 0;
-                            if (nuevaCantidad > stockMax) nuevaCantidad = stockMax;
-                            detalle.cantidad = nuevaCantidad;
-                            if (detalle.cantidad === 0) {
-                              carrito.splice(
-                                carrito.findIndex(d => d.productoId === detalle.productoId),
-                                1
-                              );
-                            }
-                            setCarrito([...carrito]);
-                          }} />
-                          <Button variant="contained" color="success" onClick={() => {
-                            const stockMax = stocks.find(
-                              s => s.producto.id === detalle.productoId &&
-                              s.ubicacion.tipo === "TIENDA"
-                            )?.cantidad ?? 0;
+                          <TextField value={detalle.cantidad}
+                            onChange={(e) =>actualizarCantidad( detalle.productoId, parseInt(e.target.value) || 0 )}
+                          />
 
-                            if (detalle.cantidad < stockMax) {
-                              detalle.cantidad = detalle.cantidad + 1;
-                              setCarrito([...carrito]);
-                            }
-                          }}> + </Button>
+                          <Button variant="contained" color="success"
+                            onClick={() => actualizarCantidad( detalle.productoId, detalle.cantidad + 1)}
+                          > + </Button>
                         </Stack>
                         <Typography variant="body2">Precio Total: {(detalle.precioFinal * detalle.cantidad).toFixed(2)} €</Typography>
                       </Stack>

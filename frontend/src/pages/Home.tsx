@@ -25,7 +25,11 @@ export default function Home() {
   useEffect(() => {
     if (user?.sub) {
       fetchUsuario();
+    }else{
+      navigate("/login");
+      return;
     }
+
     abrirSegunRol();
   }, []);
 
