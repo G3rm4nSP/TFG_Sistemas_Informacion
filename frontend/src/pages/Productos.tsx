@@ -202,6 +202,7 @@ export default function ProductosPage() {
               {tiendaFiltrada.map((stock) => (
                   <StockCard
                     isJefe={usuarioCompleto.rol === "JEFE"}
+                    isTienda={true}
                     stock={stock}
                     onMove={() => moverStock(stock)}
                     onDiscount={() => { setFormData({ ...formData, idDescuento: stock.id }); setOpenDescuento(true); }}

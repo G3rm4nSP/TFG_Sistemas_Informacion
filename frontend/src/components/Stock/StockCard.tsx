@@ -2,6 +2,7 @@ import {  Card,  CardContent,  Typography,  Stack,  Chip,  Divider,  Button,} fr
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
+import AddIcon from "@mui/icons-material/Add";
 
 type Props = {
   stock?: any;
@@ -14,12 +15,13 @@ type Props = {
   onSale?: () => void;
 
   isStock?: boolean;
+  isTienda?: boolean;
   isCatalogo?: boolean;
   isJefe?: boolean;
   isVenta?: boolean;
 };
 
-const StockCard = ({ stock, producto, onMove, onDiscount, onDelete, onEdit, onSale, isStock=false, isCatalogo=false, isJefe=false, isVenta=false }: Props) => (
+const StockCard = ({ stock, producto, onMove, onDiscount, onDelete, onEdit, onSale, isStock=false, isTienda=false, isCatalogo=false, isJefe=false, isVenta=false }: Props) => (
 
   <Card sx={{ borderLeft: "4px solid #667eea", ...((stock?.cantidad ?? producto?.stocks?.reduce((t: any, s: any) => t + s.cantidad,0)) === 0 && !isJefe && { opacity: 0.7, backgroundColor: "#f8d7dac3"})}}>
     <CardContent>
@@ -37,14 +39,15 @@ const StockCard = ({ stock, producto, onMove, onDiscount, onDelete, onEdit, onSa
       </Typography>
       <Stack direction="row" spacing={1} sx={{ mb: 1.5 }}>
         <Chip label={`${stock?.cantidad?.toFixed(0) || (producto?.stocks?.reduce((t:any, s:any) => t + s.cantidad, 0))} uds`} size="small" variant="outlined" />
-        {!isStock ? (
+        {(isTienda  || isCatalogo || isVenta )&& (
           <Chip label={`${stock?.producto?.precioBase.toFixed(2) || producto?.precioBase.toFixed(2)} €`} size="small" variant="outlined" />
-        ):(
+        )}
+        {isStock && (
           <Chip label={`${stock?.valor.toFixed(2)} €`} size="small" variant="outlined" sx={{ backgroundColor:stock?.valor < 0 ? "#ff00006b" :"#0080006b"  }} />
         )}
         {!isCatalogo && stock?.descuento > 0 && <Chip label={`${stock?.descuento}%`} size="small" color="error" />}
       </Stack>
-      {!isCatalogo &&(
+      {!isCatalogo && !isVenta &&(
         <Stack direction="row" spacing={1} sx={{ mb: 1.5, flexWrap: "wrap" }}>
           <Typography variant="caption" sx={{ backgroundColor: "#f0f0f0", p: "4px 8px", borderRadius: "4px" }}>
             {stock?.ubicacion?.local?.nombre}
@@ -61,28 +64,33 @@ const StockCard = ({ stock, producto, onMove, onDiscount, onDelete, onEdit, onSa
       <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap", gap: 1 }}>
         
 
-        {!isCatalogo && (stock?.cantidad ?? producto?.stocks?.reduce((t: any, s: any) => t + s.cantidad,0)) > 0 && (
+        {!isCatalogo && (stock?.cantidad ?? producto?.stocks?.reduce((t: any, s: any) => t + s.cantidad,0)) > 0 && !isVenta && (
           <Button size="small" variant="contained" startIcon={<ArrowForwardIcon />} disabled={(stock?.cantidad ?? producto?.stocks?.reduce((t: any, s: any) => t + s.cantidad,0)) === 0 && !isJefe} onClick={onMove}>
             Mover
           </Button>
         )}
 
-        {!isCatalogo && !isStock && (stock?.cantidad ?? producto?.stocks?.reduce((t: any, s: any) => t + s.cantidad,0)) > 0 &&  (
+        {!isCatalogo && !isStock && !isVenta && (stock?.cantidad ?? producto?.stocks?.reduce((t: any, s: any) => t + s.cantidad,0)) > 0 &&  (
           <Button size="small" variant="outlined" disabled={(stock?.cantidad ?? producto?.stocks?.reduce((t: any, s: any) => t + s.cantidad,0)) === 0 && !isJefe} onClick={onDiscount}>
             Descuento
           </Button>
         )}
-        {!isCatalogo && stock?.cantidad === 0 && (
+        {!isCatalogo && stock?.cantidad === 0 && !isVenta && (
           <Button size="small" color="error" variant="outlined" disabled={(stock?.cantidad ?? producto?.stocks?.reduce((t: any, s: any) => t + s.cantidad,0)) === 0 && !isJefe} startIcon={<DeleteIcon />} onClick={onDelete}>
             Eliminar
           </Button>
         )}
-        {isCatalogo && isJefe && (
+        {isCatalogo && isJefe &&(
           <Button size="small" variant="contained" disabled={!isJefe} startIcon={<EditIcon />} onClick={onEdit}>
             Editar
           </Button>
         )}
-        
+        {isVenta && (
+          <Button size="small" variant="contained" startIcon={<AddIcon />} onClick={onSale}>
+            Añadir
+          </Button>
+        )}
+
       </Stack>
     </CardContent>
   </Card>
