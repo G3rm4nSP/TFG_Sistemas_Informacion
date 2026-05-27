@@ -1,114 +1,88 @@
-import { Button, Container, Typography, Stack } from "@mui/material";
+import {Box, Typography, Paper, Grid, useTheme, useMediaQuery} from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import { api } from "../api/axios";
+import DashboardIcon from "@mui/icons-material/Dashboard";
+import PeopleIcon from "@mui/icons-material/People";
+import StorageIcon from "@mui/icons-material/Storage";
+import HomeIcon from "@mui/icons-material/Home";
+import FactoryIcon from "@mui/icons-material/Factory";
+import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import { useEffect, useState } from "react";
-import { logout } from "./Login";
+import { fetchUsuario, logout } from "../services/userService";
+import AppHeader from "../components/generals/AppHeader";
 
-function decodeToken(token: string) {
-  try {
-    const payload = token.split(".")[1];
-    return JSON.parse(atob(payload));
-  } catch {
-    return null;
-  }
-}
 
 export default function Home() {
 
   const [usuarioCompleto, setUsuarioCompleto] = useState<any>(null);
-
-  const token = localStorage.getItem("accessToken");
-  const user = token ? decodeToken(token) : null;
-
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (user?.sub) {
-      fetchUsuario();
-    }else{
-      navigate("/login");
-      return;
-    }
+    const cargar = async () => {
+      const usuario = await fetchUsuario(navigate);
+      setUsuarioCompleto(usuario);
+    };
 
-    abrirSegunRol();
+    cargar();
   }, []);
 
-  const fetchUsuario = async () => {
-    try {
-      const res = await api.get(`/usuario/${user.sub}`);
-      setUsuarioCompleto(res.data);
-    } catch (error) {
-      console.error("Error cargando usuario", error);
-    }
+  const handleLogout = () => {
+    logout(navigate);
   };
 
-  const abrirSegunRol = () => {
-    if (!user.rol) return;
-    switch (user.rol) {
-      case "VENTAS":
-        navigate("/ventas");
-        break;
-      case "RRHH":
-        navigate("/empleados");
-        break;
-      case "JEFE":
-       // navigate("/listaDashboards");
-        break;
-    }
-  };
+  const menuItems = [
+    { title: "Gestión de Empleados", route: "/empleados", icon: <PeopleIcon />, show: usuarioCompleto?.rol === "RRHH" || usuarioCompleto?.rol === "ADMIN" },
+    { title: "Gestión de Clientes", route: "/clientes", icon: <PeopleIcon />, show: usuarioCompleto?.rol === "ADMIN" },
+    { title: "Gestión de Productos", route: "/productos", icon: <StorageIcon />, show: usuarioCompleto?.rol === "VENTAS" || usuarioCompleto?.rol === "JEFE" || usuarioCompleto?.rol === "ADMIN" },
+    { title: "Gestión de Proveedores", route: "/proveedores", icon: <FactoryIcon />, show: usuarioCompleto?.rol === "VENTAS" ||usuarioCompleto?.rol === "JEFE" || usuarioCompleto?.rol === "ADMIN" },
+    { title: "Gestión de Ventas", route: "/ventas", icon: <ShoppingCartIcon />, show: usuarioCompleto?.rol === "VENTAS" ||usuarioCompleto?.rol === "JEFE" || usuarioCompleto?.rol === "ADMIN" },
+    { title: "Dashboards", route: "/listaDashboards", icon: <DashboardIcon />, show: true },
+  ];
 
   return (
-    <Container>
-<Stack direction="row" justifyContent="space-between" mb={2}>
-        
-          <Typography variant="h4" sx={{ marginBottom: 4 }}>
-            ERP - Panel Principal
-          </Typography>
-        
-          <Stack direction="column" spacing={2}>
-            <Button variant="contained" onClick={() => logout(navigate)}>
-              Cerrar sesión
-            </Button>
-          </Stack>
-           
-        </Stack>
-      
-      {usuarioCompleto && (
-        <Typography sx={{ mb: 3 }}>
-          Bienvenido, {usuarioCompleto.empleado.nombre} {usuarioCompleto.empleado.apellidos}
+    <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh", background: "var(--background)" }}>
+      <AppHeader titulo="VISTA GENERAL" icon={<HomeIcon />} usuario={usuarioCompleto}  onLogout={handleLogout}/>
+
+      <Box sx={{ flex: 1, p: { xs: 2, md: 3 } }}>
+        <Typography variant={isMobile ? "h5" : "h4"} sx={{ fontWeight: 700, mb: 1 }}>
+          Panel Principal
         </Typography>
-      )}
-
-      
-
-      <Stack spacing={2}>
-    
-
-        <Button variant="contained" onClick={() => navigate("/empleados")}>
-          Gestión de Empleados
-        </Button>
-
-        {user?.rol === "ADMIN" && (
-          <Button variant="contained" onClick={() => navigate("/clientes")}>
-            Gestión de Clientes
-          </Button>
+        {usuarioCompleto && (
+          <Typography variant="body2" sx={{ color: "var(--text-secondary)", mb: 3 }}>
+            Bienvenido, {usuarioCompleto.empleado.nombre} {usuarioCompleto.empleado.apellidos}
+          </Typography>
         )}
-        <Button variant="contained" onClick={() => navigate("/productos")}>
-          Gestión de Productos
-        </Button>
 
-        <Button variant="contained" onClick={() => navigate("/proveedores")}>
-          Gestión de Proveedores
-        </Button>
-
-        <Button variant="contained" onClick={() => navigate("/ventas")}>
-          Gestión de Ventas
-        </Button>
-
-        <Button variant="contained" onClick={() => navigate("/listaDashboards")}>
-          Lista Dashboards
-        </Button>
-      </Stack>
-    </Container>
+        <Grid container spacing={2}>
+          {menuItems
+            .filter((item) => item.show)
+            .map((item, idx) => (
+                <Paper
+                  onClick={() => navigate(item.route)}
+                  sx={{
+                    p: 3,
+                    background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                    color: "white",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 2,
+                    transition: "all 0.3s",
+                    "&:hover": {
+                      transform: "translateY(-4px)",
+                      boxShadow: "0 8px 16px rgba(102, 126, 234, 0.3)",
+                    },
+                  }}
+                >
+                  <Box sx={{ fontSize: 40 }}>{item.icon}</Box>
+                  <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                    {item.title}
+                  </Typography>
+                </Paper>
+            ))}
+        </Grid>
+      </Box>
+    </Box>
   );
 }

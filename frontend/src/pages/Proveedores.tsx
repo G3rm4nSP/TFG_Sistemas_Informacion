@@ -16,8 +16,7 @@ import {
   Alert
 } from "@mui/material";
 import { api } from "../api/axios";
-import { logout } from "./Login";
-
+import { logout } from "../services/userService";
 interface Proveedor {
   id: string;
   nombre: string;

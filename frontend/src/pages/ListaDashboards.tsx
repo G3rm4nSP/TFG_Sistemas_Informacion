@@ -2,8 +2,7 @@ import { Button, Container, Typography, Stack } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { api } from "../api/axios";
 import { useEffect, useState } from "react";
-import { logout } from "./Login";
-
+import { logout } from "../services/userService";
 function decodeToken(token: string) {
   try {
     const payload = token.split(".")[1];

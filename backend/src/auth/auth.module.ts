@@ -5,6 +5,7 @@ import { AuthController } from './auth.controller';
 import { JwtStrategy } from './jwt.strategy';
 import { PrismaService } from '../prisma/prisma.service';
 import { RolesGuard } from './guards/roles.guard';
+import 'dotenv/config';
 
 @Module({
   imports: [
