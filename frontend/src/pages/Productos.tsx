@@ -247,7 +247,7 @@ export default function ProductosPage() {
 
       <CrearEditarProducto open={openFormProducto} onClose={() => setOpenFormProducto(false)} isEdit={!!editingProducto}
        fetchCatalogoProductos={fetchCatalogoProductos} fetchStock={fetchStock} editingProducto={editingProducto} />
-      <AplicarDescuento open={openDescuento} onClose={() => setOpenDescuento(false)} fetchStock={fetchStock} />
+      <AplicarDescuento open={openDescuento} idDescuento={formData.idDescuento} onClose={() => setOpenDescuento(false)} fetchStock={fetchStock} />
           
       <MoverStock prodMovido={movido} prodOrigen={origenId} open={openFormMoverStock} onClose={() => setOpenFormMoverStock(false)} fetchStock={fetchStock} ubisAMover={ubisAMover} />    
 

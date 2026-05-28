@@ -17,6 +17,8 @@ import {
 } from "@mui/material";
 import { api } from "../api/axios";
 import { CheckBox } from "@mui/icons-material";
+import { useNavigate } from "react-router-dom";
+import { fetchUsuario } from "../services/userService";
 
 interface Producto {
   id: string;
@@ -32,6 +34,7 @@ interface Producto {
 }
 
 interface CompraDetalle {
+  id?: string;
   compraId: string;
   productoId: string;
   cantidad: number;
@@ -47,15 +50,6 @@ interface Compra {
   fecha: string;
   total: number;
   detalles: CompraDetalle[];
-}
-
-function decodeToken(token: string) {
-  try {
-    const payload = token.split(".")[1];
-    return JSON.parse(atob(payload));
-  } catch {
-    return null;
-  }
 }
 
 export default function PedidoProveedor() {
@@ -74,14 +68,15 @@ export default function PedidoProveedor() {
   const [successMsg, setSuccessMsg] = useState("");
   const [catalogoProductos, setCatalogoProductos] = useState<Producto[]>([]);
   const [formData, setFormData] = useState<any>({});
+ const navigate = useNavigate();
 
-  const token = localStorage.getItem("accessToken");
-  const user = token ? decodeToken(token) : null;
-
- 
   useEffect(() => {
     fetchProveedor();
-    fetchUsuario();
+    const cargar = async () => {
+              const usuario = await fetchUsuario(navigate);
+              setUsuarioCompleto(usuario);
+            };
+            cargar();
   }, []);
 
   useEffect(() => {
@@ -93,11 +88,6 @@ export default function PedidoProveedor() {
   const fetchProveedor = async () => {
     const prov = await api.get(`/proveedor/${provId}`);
     setProveedor(prov.data);
-  };
-
-  const fetchUsuario = async () => {
-    const usr = await api.get(`/usuario/${user.sub}`);
-    setUsuarioCompleto(usr.data);
   };
 
   const fetchHistoricoCompras = async () => {
@@ -288,7 +278,7 @@ export default function PedidoProveedor() {
 
         <Stack spacing={3}>
           {detallesFiltrados.map((detalle) => (
-            <Paper key={`${detalle.compraId}-${detalle.productoId}`} sx={{ p: 3, borderRadius: 3 }}>
+            <Paper key={detalle.id} sx={{ p: 3, borderRadius: 3 }}>
               <Typography fontWeight={600}>
                 {new Date(detalle.fecha).toLocaleDateString()}
               </Typography>

@@ -13,11 +13,6 @@ import { CompraModule } from './modules/compra/compra.module';
 import { StockModule } from './modules/stock/stock.module';
 import { UbicacionModule } from './modules/ubicacion/ubicacion.module';
 import { UsuarioModule } from './modules/usuario/usuario.module';
-import { VentaDetalleModule } from './modules/venta-detalle/venta-detalle.module';
-import { CompraDetalleModule } from './modules/compra-detalle/compra-detalle.module';
-import { EmpleadoHorarioModule } from './modules/empleado-horario/empleado-horario.module';
-import { EmpleadoRrhhModule } from './modules/empleado-rrhh/empleado-rrhh.module';
-import { EmpleadoAusenciaModule } from './modules/empleado-ausencia/empleado-ausencia.module';
 import { AuthModule } from './auth/auth.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 
@@ -38,11 +33,6 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
     StockModule, 
     UbicacionModule, 
     UsuarioModule, 
-    VentaDetalleModule, 
-    CompraDetalleModule, 
-    EmpleadoHorarioModule, 
-    EmpleadoRrhhModule, 
-    EmpleadoAusenciaModule,
     DashboardModule,
     AuthModule
   ],

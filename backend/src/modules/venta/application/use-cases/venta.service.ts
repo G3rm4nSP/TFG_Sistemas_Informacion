@@ -52,6 +52,7 @@ export class VentaService {
               descuento: detalle.descuento,
               precioFinal: detalle.precioFinal,
               producto: { connect: { id: detalle.productoId } },
+              stock: { connect: { id: detalle.stockId } },
             })),
           },
         },

@@ -121,6 +121,8 @@ model Stock {
   descuento    Float?
   updatedAt    DateTime  @updatedAt
 
+  ventaDetalles VentaDetalle[]
+
   producto     Producto   @relation(fields: [productoId], references: [id])
   ubicacion    Ubicacion  @relation(fields: [ubicacionId], references: [id])
 
@@ -166,8 +168,10 @@ model Usuario{
 }
 
 model VentaDetalle{
+  id            String @id @default(uuid())
   ventaId       String
   productoId    String
+  stockId       String
   cantidad      Int
   precioSinIVA  Float
   descuento     Float?
@@ -175,11 +179,12 @@ model VentaDetalle{
   
   venta         Venta     @relation(fields: [ventaId], references: [id])
   producto      Producto  @relation(fields: [productoId], references: [id])
-
-  @@id([ventaId, productoId])
+  stock         Stock     @relation(fields: [stockId], references: [id])
 }
 
 model CompraDetalle{
+
+  id          String @id @default(uuid())
   compraId    String
   productoId  String
   cantidad    Int
@@ -187,8 +192,6 @@ model CompraDetalle{
   
   compra      Compra    @relation(fields: [compraId], references: [id])
   producto    Producto  @relation(fields: [productoId], references: [id])
-
-  @@id([compraId, productoId])
 }
 
 model EmpleadoHorario{

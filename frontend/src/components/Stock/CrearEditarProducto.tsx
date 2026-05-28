@@ -171,12 +171,14 @@ export function CrearEditarProducto({
 
 type Props2 = {
   open: boolean;
+  idDescuento: string;
   onClose: () => void;
   fetchStock: () => void;
 };
 
 export function AplicarDescuento({
   open,
+  idDescuento,
   onClose,
   fetchStock,
 }: Props2)  {
@@ -191,7 +193,8 @@ export function AplicarDescuento({
     }
 
     try {
-      await api.patch(`/stock/${formData.idDescuento}`, payload);
+      console.log("Aplicando descuento con payload:", payload, "al stock con ID:", idDescuento);
+      await api.patch(`/stock/${idDescuento}`, payload);
       setSuccessMsg("Descuento aplicado correctamente")
       fetchStock();
     } catch (error) {

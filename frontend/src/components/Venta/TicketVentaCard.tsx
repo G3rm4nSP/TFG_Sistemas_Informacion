@@ -46,7 +46,7 @@ const TicketVentaCard = ({ venta }: Props) => {
         <Divider sx={{ mb: 2 }} />
         <Stack spacing={1}>
           {venta.detalles.map((detalle:any) => (
-            <Paper key={detalle.productoId} sx={{ p: 1.5, backgroundColor: "#f9f9f9" }}>
+            <Paper key={detalle.id} sx={{ p: 1.5, backgroundColor: "#f9f9f9" }}>
               <Stack direction="row" spacing={1} sx={{ justifyContent: "space-between" }}>
                 <Box sx={{ flex: 1 }}>
                   <Typography variant="body2" sx={{ fontWeight: 600 }}>

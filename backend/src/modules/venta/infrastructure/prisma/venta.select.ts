@@ -10,11 +10,14 @@ export const ventaSelect = {
 
     detalles: {
         select:{
+            id: true,
             cantidad: true,
             precioSinIVA: true,
             descuento: true,
             precioFinal: true,
-
+            stockId: true,
+            productoId: true,
+            ventaId: true,
             producto: {
                 select:{
                     nombre : true,

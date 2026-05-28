@@ -8,6 +8,7 @@ export const compraSelect = {
     total: true,
     detalles: {
         select: {
+            id: true,
             productoId: true,
             cantidad: true,
             precioUnidad: true,

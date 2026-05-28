@@ -21,19 +21,19 @@ export const User = createParamDecorator(
 export class CompraController {
   constructor(private readonly compraService: CompraService) {}
 
-  @Roles('JEFE ', 'VENTAS')
+  @Roles('JEFE', 'VENTAS')
   @Post()
   create(@Body() createCompraDto: CreateCompraDto) {
     return this.compraService.create(createCompraDto);
   }
-  @Roles('JEFE ', 'VENTAS')
+  @Roles('JEFE', 'VENTAS')
   @Get()
   findAll(
     @Query('proveedorId') proveedorId: string,
     @Query('localId') localId: string,) {
       return this.compraService.findAll( { proveedorId, localId });
   }
-  @Roles('JEFE ', 'VENTAS')
+  @Roles('JEFE', 'VENTAS')
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.compraService.findOne(id);
