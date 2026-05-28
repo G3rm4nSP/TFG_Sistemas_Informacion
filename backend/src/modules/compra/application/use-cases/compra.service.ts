@@ -13,7 +13,7 @@ export class CompraService {
   
   async create(createCompraDto: CreateCompraDto) {
 
-  const { proveedorId, localId, detalles, ...rest } = createCompraDto;
+  const { proveedorId, localId, empleadoId, detalles, ...rest } = createCompraDto;
 
     return this.prisma.$transaction(async (tx) => {
 
@@ -37,6 +37,7 @@ export class CompraService {
         data: {
           ...rest,
           proveedor: { connect: { id: proveedorId } },
+          empleado: { connect: { id: empleadoId } }, 
           local: { connect: { id: localId } },
           detalles: {
             create: detalles.map((detalle) => ({

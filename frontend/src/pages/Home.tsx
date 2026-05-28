@@ -35,7 +35,7 @@ export default function Home() {
     { title: "Gestión de Empleados", route: "/empleados", icon: <PeopleIcon />, show: usuarioCompleto?.rol === "RRHH" || usuarioCompleto?.rol === "ADMIN" },
     { title: "Gestión de Clientes", route: "/clientes", icon: <PeopleIcon />, show: usuarioCompleto?.rol === "ADMIN" },
     { title: "Gestión de Productos", route: "/productos", icon: <StorageIcon />, show: usuarioCompleto?.rol === "VENTAS" || usuarioCompleto?.rol === "JEFE" || usuarioCompleto?.rol === "ADMIN" },
-    { title: "Gestión de Proveedores", route: "/proveedores", icon: <FactoryIcon />, show: usuarioCompleto?.rol === "VENTAS" ||usuarioCompleto?.rol === "JEFE" || usuarioCompleto?.rol === "ADMIN" },
+    { title: "Gestión de Proveedores", route: "/proveedores", icon: <FactoryIcon />, show: usuarioCompleto?.rol === "VENTAS" ||usuarioCompleto?.rol === "JEFE" || usuarioCompleto?.rol === "ADMIN" || usuarioCompleto?.rol === "RRHH" },
     { title: "Gestión de Ventas", route: "/ventas", icon: <ShoppingCartIcon />, show: usuarioCompleto?.rol === "VENTAS" ||usuarioCompleto?.rol === "JEFE" || usuarioCompleto?.rol === "ADMIN" },
     { title: "Dashboards", route: "/listaDashboards", icon: <DashboardIcon />, show: true },
   ];

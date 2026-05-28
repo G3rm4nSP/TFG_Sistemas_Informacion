@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Box, Typography, Button, Stack, TextField, Grid, Tabs, Tab, useTheme, useMediaQuery } from "@mui/material";
+import { Box, Typography, Button, Stack, TextField, Grid, Tabs, Tab, useTheme, useMediaQuery, Paper } from "@mui/material";
 import { api } from "../api/axios";
 import { fetchUsuario, logout } from "../services/userService";
 import { useNavigate } from "react-router-dom";
@@ -199,7 +199,12 @@ export default function ProductosPage() {
 
           {tab === 0 && (
             <Grid container spacing={2}>
-              {tiendaFiltrada.map((stock) => (
+              {tiendaFiltrada.length === 0 ? (
+                <Paper sx={{ p: 4, textAlign: "center"  }}>
+                  <Typography color="textSecondary">No hay productos en venta</Typography>
+                </Paper>
+              ) : (
+                tiendaFiltrada.map((stock) => (
                   <StockCard
                     isJefe={usuarioCompleto.rol === "JEFE"}
                     isTienda={true}
@@ -208,13 +213,17 @@ export default function ProductosPage() {
                     onDiscount={() => { setFormData({ ...formData, idDescuento: stock.id }); setOpenDescuento(true); }}
                     onDelete={() => handleDeleteStock(stock.id)}
                   />
-              ))}
+              )))}
             </Grid>
           )}
 
           {tab === 1 && (
             <Grid container spacing={2}>
-              {almacenFiltrado.map((stock) => (
+              {almacenFiltrado.length === 0 ? (
+                <Paper sx={{ p: 4, textAlign: "center"  }}>
+                  <Typography color="textSecondary">No hay productos en almacen</Typography>
+                </Paper>
+              ) : (almacenFiltrado.map((stock) => (
                   <StockCard
                     isJefe={usuarioCompleto.rol === "JEFE"}
                     stock={stock}
@@ -223,12 +232,16 @@ export default function ProductosPage() {
                     onDelete={() => handleDeleteStock(stock.id)}
                     isStock = {true}
                   />
-              ))}
+              )))}
             </Grid>
           )}
           {tab === 2 && (
             <Grid container spacing={2}>
-              {productosFiltrados.map((producto) => (
+              {productosFiltrados.length === 0 ? (
+                <Paper sx={{ p: 4, textAlign: "center"  }}>
+                  <Typography color="textSecondary">No hay productos en el catálogo</Typography>
+                </Paper>
+              ) : (productosFiltrados.map((producto) => (
                   <StockCard
                     isJefe={usuarioCompleto.rol === "JEFE"}
                     producto={producto}
@@ -239,14 +252,14 @@ export default function ProductosPage() {
                       setOpenFormProducto(true);
                     }}
                   />
-              ))}
+              )))}
             </Grid>
           )}
         </Stack>
       </Box>
 
       <CrearEditarProducto open={openFormProducto} onClose={() => setOpenFormProducto(false)} isEdit={!!editingProducto}
-       fetchCatalogoProductos={fetchCatalogoProductos} fetchStock={fetchStock} editingProducto={editingProducto} />
+        fetchCatalogoProductos={fetchCatalogoProductos} fetchStock={fetchStock} editingProducto={editingProducto} />
       <AplicarDescuento open={openDescuento} idDescuento={formData.idDescuento} onClose={() => setOpenDescuento(false)} fetchStock={fetchStock} />
           
       <MoverStock prodMovido={movido} prodOrigen={origenId} open={openFormMoverStock} onClose={() => setOpenFormMoverStock(false)} fetchStock={fetchStock} ubisAMover={ubisAMover} />    

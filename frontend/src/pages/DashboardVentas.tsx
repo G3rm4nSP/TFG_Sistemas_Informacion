@@ -1,10 +1,18 @@
 import { useEffect, useState } from "react";
+import DashboardIcon from "@mui/icons-material/Dashboard";
+import { useNavigate } from "react-router-dom";
+import { fetchUsuario, logout } from "../services/userService";
+import AppHeader from "../components/generals/AppHeader";
+
 import {
   Box,
   Typography,
   Paper,
   Stack,
+  useTheme,
+  useMediaQuery,
 } from "@mui/material";
+
 import {
   LineChart, Line, XAxis, YAxis, Tooltip,
   CartesianGrid, ResponsiveContainer,
@@ -50,10 +58,23 @@ function completarDias(evolucion: any[]) {
 
 export default function DashboardVentas() {
   const [data, setData] = useState<DetallesDashboard | null>(null);
-
+  const [usuarioCompleto, setUsuarioCompleto] = useState<any>(null);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const navigate = useNavigate();
+  
   useEffect(() => {
     fetchData();
+    const cargar = async () => {
+          const usuario = await fetchUsuario(navigate);
+          setUsuarioCompleto(usuario);
+        };
+        cargar();
   }, []);
+
+  const handleLogout = () => {
+    logout(navigate);
+   };
 
   const fetchData = async () => {
     const res = await api.get("/dashboard/venta");
@@ -86,53 +107,60 @@ export default function DashboardVentas() {
   });
 
   return (
-    <Box p={5}>
-      <Typography variant="h4" mb={4}>📊 Dashboard ventas</Typography>
+    <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh", background: "var(--background)" }}>
+      <AppHeader titulo="DASHBOARD GENERAL" icon={<DashboardIcon />} usuario={usuarioCompleto} onLogout={handleLogout} />
+      <Box sx={{ flex: 1, p: { xs: 2, md: 3 } }}>
+        <Stack spacing={3}>
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ alignItems: "center", justifyContent: "space-between" }}>
+            <Typography variant="h4" mb={4}>📊 Dashboard ventas</Typography>
 
-      <Stack direction="row" spacing={2} mb={4}>
+            <Stack direction="row" spacing={2} mb={4}>
 
-        <DiagramaPersonalizado
-            title="Ventas diarias"
-            type="line"
-            data={evolucionCompleta}
-          />
+              <DiagramaPersonalizado
+                  title="Ventas diarias"
+                  type="line"
+                  data={evolucionCompleta}
+                />
 
-          <DiagramaPersonalizado
-            title="Ventas por empleado"
-            type="bar"
-            data={data.ventasPorEmpleado}
-          />
+                <DiagramaPersonalizado
+                  title="Ventas por empleado"
+                  type="bar"
+                  data={data.ventasPorEmpleado}
+                />
 
-          {data.ventasPorLocal.length > 1 && (
-            <DiagramaPersonalizado
-              title="Ventas por local"
-              type="bar"
-              data={data.ventasPorLocal}
-            />
-          )}
+                {data.ventasPorLocal.length > 1 && (
+                  <DiagramaPersonalizado
+                    title="Ventas por local"
+                    type="bar"
+                    data={data.ventasPorLocal}
+                  />
+                )}
 
-          <DiagramaPersonalizado
-            title="Ventas por producto"
-            type="bar"
-            data={data.ventasProductos}
-            isProduct
-          />
-      </Stack>
-      <Paper sx={{ p: 3 }}>
-            <Typography variant="h6" mb={2}>⚠️ Alertas</Typography>
+                <DiagramaPersonalizado
+                  title="Ventas por producto"
+                  type="bar"
+                  data={data.ventasProductos}
+                  isProduct
+                />
+            </Stack>
+            <Paper sx={{ p: 3 }}>
+                  <Typography variant="h6" mb={2}>⚠️ Alertas</Typography>
 
-            {alertas.length === 0 && (
-              <Typography color="success.main">
-                Todo va bien 👍
-              </Typography>
-            )}
+                  {alertas.length === 0 && (
+                    <Typography color="success.main">
+                      Todo va bien 👍
+                    </Typography>
+                  )}
 
-            {alertas.map((a, i) => (
-              <Typography key={i} color="error.main">
-                • {a}
-              </Typography>
-            ))}
-          </Paper>
+                  {alertas.map((a, i) => (
+                    <Typography key={i} color="error.main">
+                      • {a}
+                    </Typography>
+                  ))}
+                </Paper>
+          </Stack>
+        </Stack>
+      </Box>   
     </Box>
   );
 }

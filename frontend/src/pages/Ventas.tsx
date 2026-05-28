@@ -318,9 +318,17 @@ export default function Ventas() {
           {tab === 0 && (
             <Stack spacing={2}>
               <TextField placeholder="Buscar por ID, cliente, local..." value={searchVenta} onChange={(e) => setSearchVenta(e.target.value)} fullWidth size="small" />
-              {ventasFiltrada.map((venta) => (
-                  <TicketVentaCard venta={venta} />
-              ))}
+              
+              {ventasFiltrada.length === 0 ? (
+                <Paper sx={{ p: 4, textAlign: "center" }}>
+                  <Typography color="textSecondary">No hay historial de ventas</Typography>
+                </Paper>
+              ) : (
+                ventasFiltrada.map((venta) => (
+                  <TicketVentaCard key={venta.id} venta={venta} />
+                ))
+              )}
+
             </Stack>
           )}
 
@@ -328,7 +336,12 @@ export default function Ventas() {
             <Stack spacing={3}>
               <TextField placeholder="Buscar productos..." value={searchProducto} onChange={(e) => setSearchProducto(e.target.value)} fullWidth size="small" />
               <Grid container spacing={2}>
-                {tiendaFiltrada.map((stock) => (
+              {tiendaFiltrada.length === 0 ? (
+                <Paper sx={{ p: 4, textAlign: "center"  }}>
+                  <Typography color="textSecondary">No hay productos en venta</Typography>
+                </Paper>
+              ) : (
+                tiendaFiltrada.map((stock) => (
                   (stock.cantidad > 0) ? (
                       <StockCard
                         stock={stock}
@@ -349,7 +362,9 @@ export default function Ventas() {
                         }}
                       />
                   ) : null
-                ))}
+                ))
+              )}
+                
               </Grid>
             </Stack>
           )}
@@ -389,28 +404,35 @@ export default function Ventas() {
               <Stack spacing={2}>
                 <TextField placeholder="Buscar productos..." value={searchProducto} onChange={(e) => setSearchProducto(e.target.value)} fullWidth size="small" />
                 <Grid container spacing={2}>
-                  {almacenFiltrado.map((stock) => (
-                    (stock.cantidad > 0) ? (
-                        <StockCard
-                          stock={stock}
-                          isVenta={true}
-                          onSale={() => {
-                            const carri: Carrito = {
-                              productoId: stock.producto.id,
-                              stockId: stock.id,
-                              cantidad: stock.cantidad,
-                              precioSinIVA: stock.producto.precioBase,
-                              precioConIVA: stock.producto.precioBase * (1 + stock.producto.porcentajeIVA / 100),
-                              precioDescuento: stock.producto.precioBase * (stock.descuento / 100),
-                              descuento: stock.descuento,
-                              producto: stock.producto,
-                              precioFinal: stock.producto.precioBase * (1 - stock.descuento / 100) * (1 + stock.producto.porcentajeIVA / 100),
-                            };
-                            agregarAlCarrito(carri);
-                          }}
-                        />
-                    ) : null
-                  ))}
+                  {almacenFiltrado.length === 0 ? (
+                    <Paper sx={{ p: 4, textAlign: "center"  }}>
+                      
+                  <Typography color="textSecondary">No hay productos en almacen</Typography>
+                    </Paper>
+                  ) : (
+                    almacenFiltrado.map((stock) => (
+                      (stock.cantidad > 0) ? (
+                          <StockCard
+                            stock={stock}
+                            isVenta={true}
+                            onSale={() => {
+                              const carri: Carrito = {
+                                productoId: stock.producto.id,
+                                stockId: stock.id,
+                                cantidad: stock.cantidad,
+                                precioSinIVA: stock.producto.precioBase,
+                                precioConIVA: stock.producto.precioBase * (1 + stock.producto.porcentajeIVA / 100),
+                                precioDescuento: stock.producto.precioBase * (stock.descuento / 100),
+                                descuento: stock.descuento,
+                                producto: stock.producto,
+                                precioFinal: stock.producto.precioBase * (1 - stock.descuento / 100) * (1 + stock.producto.porcentajeIVA / 100),
+                              };
+                              agregarAlCarrito(carri);
+                            }}
+                          />
+                      ) : null
+                    ))
+                  )}
                 </Grid>
               </Stack>
             )}

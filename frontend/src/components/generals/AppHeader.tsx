@@ -116,6 +116,15 @@ export default function AppHeader({
 
             <MenuItem
               onClick={() => {
+                navigate("/listaDashboards");
+                setAnchorEl(null);
+              }}
+            >
+              Dashboards
+            </MenuItem>
+
+            <MenuItem
+              onClick={() => {
                 setAnchorEl(null);
                 onLogout();
               }}

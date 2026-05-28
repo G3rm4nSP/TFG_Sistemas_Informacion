@@ -3,6 +3,7 @@ import { Prisma } from '@prisma/client';
 export const compraSelect = {
     id: true,
     proveedorId: true,
+    empleadoId: true,
     localId: true,
     fecha: true,
     total: true,
@@ -21,4 +22,7 @@ export const compraSelect = {
             }
         }
     },
+    empleado: true,
+    proveedor: true,
+    local: true,
 } satisfies Prisma.CompraSelect;

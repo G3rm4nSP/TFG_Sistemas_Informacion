@@ -1,9 +1,16 @@
 import { useEffect, useState } from "react";
+import DashboardIcon from "@mui/icons-material/Dashboard";
+import { useNavigate } from "react-router-dom";
+import { fetchUsuario, logout } from "../services/userService";
+import AppHeader from "../components/generals/AppHeader";
+
 import {
   Box,
   Typography,
   Paper,
-  Stack
+  Stack,
+  useTheme,
+  useMediaQuery,
 } from "@mui/material";
 import { LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer} from "recharts";
 import { api } from "../api/axios";
@@ -22,15 +29,6 @@ interface DetallesDashboard {
   clientesNuevos : number;
   stockBajo : { nombre: string; cantidad: number }[];
   caducidadProductos : { nombre: string; cantidad: number; expiracion: string }[];
-}
-
-function decodeToken(token: string) {
-  try {
-    const payload = token.split(".")[1];
-    return JSON.parse(atob(payload));
-  } catch {
-    return null;
-  }
 }
 
 function completarDias(evolucion: any[]) {
@@ -60,10 +58,24 @@ function completarDias(evolucion: any[]) {
 
 export default function DashboardGeneral() {
   const [data, setData] = useState<DetallesDashboard | null>(null);
-
+  const [usuarioCompleto, setUsuarioCompleto] = useState<any>(null);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const navigate = useNavigate();
+  
   useEffect(() => {
     fetchData();
+    const cargar = async () => {
+          const usuario = await fetchUsuario(navigate);
+          setUsuarioCompleto(usuario);
+        };
+        cargar();
   }, []);
+
+  const handleLogout = () => {
+    logout(navigate);
+   };
+
 
   const fetchData = async () => {
     try {
@@ -73,74 +85,81 @@ export default function DashboardGeneral() {
       console.error("Error al cargar datos del dashboard", err);
     }
   };
-
+  
 
   if (!data) return null;
 
   const evolucionCompleta = completarDias(data.evolucion);
   const totalVentas30d = data.evolucion.reduce((acc, d) => acc + d.ventas, 0);
   return (
-    <Box p={5}>
-      <Paper sx={{ p: 4 }}>
-        <Stack direction="row" spacing={10} mb={4} alignItems="center">
-          <Stack direction="column" spacing={5} flex={1}>
-            <TierList title="Top productos vendidos" unidades="uds" values={data.topProductos} />
-            <TierList title="Top ventas empleados" unidades="ventas" values={data.topEmpleadosVentas} />
-            <TierList title="Top beneficios empleados" unidades="€" values={data.topEmpleadosBeneficios} />
-          </Stack>
-          <Stack direction="column" spacing={4} mb={4}>
-            < Typography variant="h4" mb={4}> 📊 Dashboard general</Typography>
-            <Paper sx={{ p: 3, mb: 4 }}>
-              <Stack direction="row" justifyContent='space-between' mb={2} alignItems="center">  
-                <Typography variant="h6" mb={2}>
-                  Evolución de ventas últimos 30 días
-                </Typography>
+    <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh", background: "var(--background)" }}>
+      <AppHeader titulo="DASHBOARD GENERAL" icon={<DashboardIcon />} usuario={usuarioCompleto} onLogout={handleLogout} />
+      <Box sx={{ flex: 1, p: { xs: 2, md: 3 } }}>
+        <Stack spacing={3}>
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ alignItems: "center", justifyContent: "space-between" }}>
+            <Paper sx={{ p: 4 }}>
+              <Stack direction="row" spacing={10} mb={4} alignItems="center">
+                <Stack direction="column" spacing={5} flex={1}>
+                  <TierList title="Top productos vendidos" unidades="uds" values={data.topProductos} />
+                  <TierList title="Top ventas empleados" unidades="ventas" values={data.topEmpleadosVentas} />
+                  <TierList title="Top beneficios empleados" unidades="€" values={data.topEmpleadosBeneficios} />
+                </Stack>
+                <Stack direction="column" spacing={4} mb={4}>
+                  < Typography variant="h4" mb={4}> 📊 Dashboard general</Typography>
+                  <Paper sx={{ p: 3, mb: 4 }}>
+                    <Stack direction="row" justifyContent='space-between' mb={2} alignItems="center">  
+                      <Typography variant="h6" mb={2}>
+                        Evolución de ventas últimos 30 días
+                      </Typography>
 
-                <Typography variant="h5" color="text.secondary">
-                  🧾 {totalVentas30d} ventas
-                </Typography>
+                      <Typography variant="h5" color="text.secondary">
+                        🧾 {totalVentas30d} ventas
+                      </Typography>
+                    </Stack>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <LineChart data={evolucionCompleta}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis
+                          dataKey="fecha"
+                          tickFormatter={(value) =>
+                            new Date(value).toLocaleDateString("es-ES", {
+                              day: "2-digit",
+                              //month: "2-digit",
+                            })
+                          }
+                        />
+                        <YAxis />
+                        <Tooltip content={<CustomTooltip />} />
+                        <Line
+                          type="monotone"
+                          dataKey="total"
+                          stroke="#1976d2"
+                          strokeWidth={2}
+                          dot={false}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </Paper>
+                  <Stack direction="row" spacing={2} mb={4}>
+                    <KPI title="Ingresos hoy" value={`${data.ingresosHoy} €`} secondary={`Hace un día(€): ${data.ingresosAyer} €`} 
+                      trend={data.ingresosHoy > data.ingresosAyer ? 1 : data.ingresosHoy < data.ingresosAyer ? -1 : 0} />
+                    <KPI title="Ingresos mes" value={`${data.ingresosMes} €`} secondary={`Mes anterior(€): ${data.ingresosMesAnterior} €`} 
+                      trend={data.ingresosMes > data.ingresosMesAnterior ? 1 : data.ingresosMes < data.ingresosMesAnterior ? -1 : 0} />
+                    <KPI title="Ticket medio" value={`${data.ticketMedio} €`} secondary="Mes anterior (%):"
+                      percent={(data.ticketMedio - data.ticketMedioMesAnterior)/data.ticketMedioMesAnterior * 100 || 0} />
+                    <KPI title="Clientes nuevos" value={`${data.clientesNuevos} personas`} icon="👤" />
+                  </Stack>
+                </Stack>
+
+                <Stack direction="column" spacing={3} flex={1}>
+                  <TierList title="Alerta stock bajo" unidades="uds" values={data.stockBajo} alert={true} />
+                  <TierList title="Alerta caducidad próxima" unidades="uds" values={data.caducidadProductos} alert={true} date= {true} />
+                </Stack>
               </Stack>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={evolucionCompleta}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis
-                    dataKey="fecha"
-                    tickFormatter={(value) =>
-                      new Date(value).toLocaleDateString("es-ES", {
-                        day: "2-digit",
-                        //month: "2-digit",
-                      })
-                    }
-                  />
-                  <YAxis />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Line
-                    type="monotone"
-                    dataKey="total"
-                    stroke="#1976d2"
-                    strokeWidth={2}
-                    dot={false}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
             </Paper>
-            <Stack direction="row" spacing={2} mb={4}>
-              <KPI title="Ingresos hoy" value={`${data.ingresosHoy} €`} secondary={`Hace un día(€): ${data.ingresosAyer} €`} 
-                trend={data.ingresosHoy > data.ingresosAyer ? 1 : data.ingresosHoy < data.ingresosAyer ? -1 : 0} />
-              <KPI title="Ingresos mes" value={`${data.ingresosMes} €`} secondary={`Mes anterior(€): ${data.ingresosMesAnterior} €`} 
-                trend={data.ingresosMes > data.ingresosMesAnterior ? 1 : data.ingresosMes < data.ingresosMesAnterior ? -1 : 0} />
-              <KPI title="Ticket medio" value={`${data.ticketMedio} €`} secondary="Mes anterior (%):"
-                percent={(data.ticketMedio - data.ticketMedioMesAnterior)/data.ticketMedioMesAnterior * 100 || 0} />
-              <KPI title="Clientes nuevos" value={`${data.clientesNuevos} personas`} icon="👤" />
-            </Stack>
-          </Stack>
-
-          <Stack direction="column" spacing={3} flex={1}>
-            <TierList title="Alerta stock bajo" unidades="uds" values={data.stockBajo} alert={true} />
-            <TierList title="Alerta caducidad próxima" unidades="uds" values={data.caducidadProductos} alert={true} date= {true} />
           </Stack>
         </Stack>
-      </Paper>
+      </Box>
     </Box>
   );
 }

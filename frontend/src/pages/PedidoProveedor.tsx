@@ -12,13 +12,21 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  Snackbar,
-  Alert,
+  useTheme,
+  useMediaQuery,
+  Grid,
+  Tabs,
+  Tab,
 } from "@mui/material";
 import { api } from "../api/axios";
-import { CheckBox } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
-import { fetchUsuario } from "../services/userService";
+import { fetchUsuario, logout } from "../services/userService";
+import AppHeader from "../components/generals/AppHeader";
+import AppSnackbars from "../components/generals/AppSnackbars";
+import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
+import TicketCompraCard from "../components/Compra/TicketCompraCard";
+import StockCard from "../components/Stock/StockCard";
+import { AgregarAlCarrito } from "../components/Proveedor/AgregarAlCarrito";
 
 interface Producto {
   id: string;
@@ -45,15 +53,21 @@ interface CompraDetalle {
 
 interface Compra {
   id: string;
+  empleadoId: string;
   proveedorId: string;
   localId: string;
   fecha: string;
   total: number;
   detalles: CompraDetalle[];
+  empleado: any;
+  local: any;
 }
 
 export default function PedidoProveedor() {
   const { provId } = useParams();
+  const navigate = useNavigate();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   const [proveedor, setProveedor] = useState<any>(null);
   const [usuarioCompleto, setUsuarioCompleto] = useState<any>(null);
@@ -62,22 +76,22 @@ export default function PedidoProveedor() {
   const [searchProducto, setSearchProducto] = useState("");
   const [carrito, setCarrito] = useState<CompraDetalle[]>([]);
   const [openCarrito, setOpenCarrito] = useState(false);
-  const [openCatalogo, setOpenCatalogo] = useState(false);
-  const [openFormProducto, setOpenFormProducto] = useState(false);
   const [openFormCantidad, setOpenFormCantidad] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
+  const [errorMsg, setErrorMsg] = useState("");
   const [catalogoProductos, setCatalogoProductos] = useState<Producto[]>([]);
   const [formData, setFormData] = useState<any>({});
- const navigate = useNavigate();
-
+  const [tab, setTab] = useState(0);
+  const [detallesPendientes, setDetallesPendientes] = useState<CompraDetalle[]>([]);
+  
   useEffect(() => {
     fetchProveedor();
     const cargar = async () => {
-              const usuario = await fetchUsuario(navigate);
-              setUsuarioCompleto(usuario);
-            };
-            cargar();
-  }, []);
+      const usuario = await fetchUsuario(navigate);
+      setUsuarioCompleto(usuario);
+    };
+    cargar();
+  }, [navigate]);
 
   useEffect(() => {
     if (proveedor?.id && usuarioCompleto?.empleado?.localId) {
@@ -97,6 +111,7 @@ export default function PedidoProveedor() {
         localId: usuarioCompleto.empleado.localId,
       },
     });
+    compras.data.sort((a: Compra, b: Compra) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
     setHistoricoCompras(compras.data);
   };
 
@@ -116,10 +131,9 @@ export default function PedidoProveedor() {
     );
   }, [historicoCompras]);
 
-  const abrirCatalogo = () => {
+  useEffect(() => {
     fetchCatalogoProductos();
-    setOpenCatalogo(true);
-  };
+  }, []);
 
   const productosFiltrados = catalogoProductos.filter((producto) =>{
     const texto = searchProducto.toLowerCase();
@@ -142,6 +156,26 @@ export default function PedidoProveedor() {
     );
   });
 
+  const comprasFiltradas = historicoCompras.filter((compra) => {
+    const texto = search.toLowerCase();
+    const fecha = new Date(compra.fecha);
+
+    const searchableDate = `
+      ${fecha.toLocaleDateString("es-ES")}
+      ${fecha.toLocaleDateString("es-ES", { month: "long" })}
+      ${fecha.getFullYear()}
+    `
+      .toLowerCase();  
+    return (
+      compra.id.toLowerCase().includes(texto) ||
+      compra.empleado?.nombre.toLowerCase().includes(texto) ||
+      compra.empleado?.apellidos.toLowerCase().includes(texto) ||
+      compra.local?.nombre.toLowerCase().includes(texto) ||
+      compra.detalles.some((detalle:any) => detalle.producto?.nombre.toLowerCase().includes(texto)) ||
+      searchableDate.includes(texto)
+    );
+  });
+
   const handleSubmitCompra = async () => {
 
     if (carrito.length === 0) {
@@ -154,6 +188,7 @@ export default function PedidoProveedor() {
       localId: usuarioCompleto.empleado.localId,
       fecha: new Date(),
       total: CalcularTotalCarrito(),
+      empleadoId: usuarioCompleto.empleadoId,
 
       detalles : carrito.map((detalle) => ({
         productoId: detalle.productoId,
@@ -161,7 +196,6 @@ export default function PedidoProveedor() {
         precioUnidad: detalle.precioUnidad
       }))
     };
-
     await api.post("/compra", payload);
     setSuccessMsg("Pedido realizado correctamente");
     setOpenCarrito(false);
@@ -169,26 +203,12 @@ export default function PedidoProveedor() {
     setCarrito([]);
   };
 
-  const handleSubmitProducto = async () => {
-    const payload = {
-      nombre: formData.nombre,
-      descripcion: formData.descripcion,
-      tipo: formData.tipo,
-      porcentajeIVA: parseFloat(formData.porcentajeIVA),
-      precioBase: parseFloat(formData.precioBase),
-      expiracion: formData.expiracion || null,
-    };
-
-    await api.post("/producto", payload);
-    setSuccessMsg("Producto creado correctamente");
-    setOpenFormProducto(false);
-    fetchCatalogoProductos();
-    setFormData({});
-  }
-
-
   const CalcularTotalCarrito = () => {
     return carrito.reduce((total, detalle) => total + detalle.precioUnidad * detalle.cantidad, 0);
+  };
+
+  const handleLogout = () => {
+    logout(navigate);
   };
 
   const agregarProducto = (producto: Producto) => {  
@@ -217,7 +237,26 @@ export default function PedidoProveedor() {
     setOpenFormCantidad(true);
   }
 
+  useEffect(() => {
+
+    if (
+      detallesPendientes.length > 0 &&
+      !openFormCantidad
+    ) {
+
+      agregarDetalle(detallesPendientes[0]);
+
+      setDetallesPendientes((prev) => prev.slice(1));
+    }
+
+  }, [detallesPendientes, openFormCantidad]);
+
   const agregarAlCarrito = () => {
+
+    if (!formData.productoId || !formData.cantidad || !formData.precioUnidad) {
+      setErrorMsg("Completa todos los campos para añadir al carrito");
+      return;
+    }
 
     for (let item of carrito) {
       if (item.productoId === formData.productoId) {
@@ -227,6 +266,7 @@ export default function PedidoProveedor() {
         setCarrito([...carrito]);
         setFormData({});
         setOpenFormCantidad(false);
+        setSuccessMsg(` + ${formData.producto?.nombre} ${formData.cantidad} uds`);
         return;
       }
     } 
@@ -242,390 +282,227 @@ export default function PedidoProveedor() {
         compraId: "",
       }
     ]);
+    setSuccessMsg(`${formData.producto?.nombre} ${formData.cantidad} uds`);
     setFormData({});
     setOpenFormCantidad(false);
   }
 
   return (
-    <Box p={5}>
-      {proveedor && (
-        <Paper sx={{ p: 4, mb: 4 }}>
-          <Typography variant="h4" mb={2}>
-            Pedido a {proveedor?.nombre}
-          </Typography>
-          <Typography>Correo: {proveedor?.correo}</Typography>
-          <Typography>Teléfono: {proveedor?.telefono}</Typography>
-          <Typography>Horario entrega: {proveedor?.horarioEntrega}</Typography>
-          <Typography>Descripción: {proveedor?.descripcion}</Typography>
-        </Paper>
-      )}
+    <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh", background: "var(--background)" }}>
+      <AppHeader titulo="PEDIDO A PROVEEDOR" icon={<ShoppingCartIcon />} usuario={usuarioCompleto} onLogout={handleLogout} />
 
-      <Paper sx={{ p: 4 }}>
-        <Typography variant="h4" mb={4} fontWeight={600}>
-          Historial de productos comprados
-        </Typography>
-
-        <Stack direction="row" spacing={2} sx={{ mb: 4 }}>
-          <TextField
-            label="Buscar por fecha o producto"
-            fullWidth
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-          <Button variant="contained" color="success" onClick={() => setOpenCarrito(true)}> Carrito Compra </Button> 
-          <Button variant="contained" color="warning" onClick={() => abrirCatalogo()}> Catalogo Productos </Button>
-        </Stack>
-
+      <Box sx={{ flex: 1, p: { xs: 2, md: 3 } }}>
         <Stack spacing={3}>
-          {detallesFiltrados.map((detalle) => (
-            <Paper key={detalle.id} sx={{ p: 3, borderRadius: 3 }}>
-              <Typography fontWeight={600}>
-                {new Date(detalle.fecha).toLocaleDateString()}
+          {proveedor && (
+            <Paper sx={{ p: 3, borderRadius: 2 }}>
+              <Typography variant={isMobile ? "h6" : "h5"} sx={{ fontWeight: 700, mb: 2 }}>
+                {proveedor?.nombre}
               </Typography>
-
-              <Box sx={{ ml: 2, mt: 1 }}>
-                <Typography variant="body2">
-                  Producto: {detalle.producto?.nombre}
-                </Typography>
-                <Typography variant="body2">
-                  Cantidad: {detalle.cantidad}
-                </Typography>
-                <Typography variant="body2">
-                  Precio unidad: {detalle.precioUnidad}€
-                </Typography>
-                <Typography variant="body2">
-                  Precio lote: {detalle.precioUnidad * detalle.cantidad}€
-                </Typography>
-                {detalle.expiracion && (
-                  <Typography variant="body2" color="error">
-                    Producto perecedero
+              <Grid container spacing={2}>
+                  <Typography variant="body2" sx={{ color: "var(--text-secondary)", mb: 0.5 }}>
+                    <strong>Correo:</strong> {proveedor?.correo || "N/A"}
                   </Typography>
-                )}
-              </Box>
-              <Divider sx={{ my: 2 }} />
-
-              <Button variant="contained" color="primary"
-                onClick={() => {agregarDetalle(detalle);}}>
-                Volver a comprar
-              </Button>
+                  <Typography variant="body2" sx={{ color: "var(--text-secondary)", mb: 0.5 }}>
+                    <strong>Teléfono:</strong> {proveedor?.telefono || "N/A"}
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: "var(--text-secondary)", mb: 0.5 }}>
+                    <strong>Horario entrega:</strong> {proveedor?.horarioEntrega || "N/A"}
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: "var(--text-secondary)" }}>
+                    <strong>Descripción:</strong> {proveedor?.descripcion || "N/A"}
+                  </Typography>
+              </Grid>
             </Paper>
-          ))}
-        </Stack>
+          )}
 
-        <Divider sx={{ my: 4 }} />
+          <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ borderBottom: "1px solid #e0e0e0" }}>
+            <Tab label={`Historial de compras (${detallesFiltrados.length})`} />
+            <Tab label={`Catálogo (${productosFiltrados.length})`} />
+          </Tabs>
 
-        
-      </Paper>
+          <Button variant="contained" startIcon={<ShoppingCartIcon />} onClick={() => setOpenCarrito(true)} sx={{ background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" }} >
+            Carrito de Compra
+          </Button>
 
+          {tab === 0 && (
+            <Stack spacing={2}>
+              <TextField placeholder="Buscar por fecha o producto..." value={search} onChange={(e) => setSearch(e.target.value)} fullWidth size="small"/>
+
+              {comprasFiltradas.length === 0 ? (
+                <Paper sx={{ p: 4, textAlign: "center" }}>
+                  <Typography color="textSecondary">No hay historial de compras</Typography>
+                </Paper>
+              ) : (
+                  comprasFiltradas.map((compra) => (
+                    <TicketCompraCard compra={compra} repeatCompra={() => {  setDetallesPendientes(compra.detalles);}}/>
+                  ))
+              )}
+            </Stack>
+          )}
+
+          {tab === 1 && (
             
-      {/* Carrito Compra */}
-      <Dialog
-        open={openCarrito}
-        onClose={() => setOpenCarrito(false)}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle>
-          Carrito de Compra
-        </DialogTitle>
-
-        <DialogContent>
-          <Stack spacing={2} mt={1}>
-            {carrito.map((detalle)=> (
-              <Paper key = {detalle.productoId} sx={{ p: 3, borderRadius: 3 }}>
-                <Stack direction="row" spacing={2} sx={{ mb: 4 }}>
-                  <Stack spacing={2} mt={1}>
-                    <Typography fontWeight={600}>{detalle.producto?.nombre}</Typography>
-                    <Typography variant="body2">Descripcion: {detalle.producto?.descripcion}</Typography>
-                    <Typography variant="body2">Precio Unidad: {(detalle.precioUnidad).toFixed(2)} €</Typography>
-                    {detalle.expiracion && (
-                      <Typography variant="body2" color="error">
-                        F.Cad: {new Date(detalle.expiracion).toLocaleDateString()}
-                      </Typography>
-                    )}
-                  </Stack>
-                  <Stack spacing={2} mt={1}>
-                    <Stack direction="row" spacing={2} sx={{ mb: 4 }}>  
-                      <Button variant="contained" color="error" onClick={() => {
-                        detalle.cantidad = Math.max(0, detalle.cantidad - 1);
-                        if (detalle.cantidad === 0) {
-                          carrito.splice(carrito.findIndex(d => d.productoId === detalle.productoId), 1);
-                        } 
-                        setCarrito([...carrito]);
-
-                      }}> - </Button>
-                      <TextField value={ detalle.cantidad} onChange={(e) => {
-                        detalle.cantidad = parseInt(e.target.value) || 0;
-                        if (detalle.cantidad === 0) {
-                          carrito.splice(carrito.findIndex(d => d.productoId === detalle.productoId), 1);
-                        }
-                        setCarrito([...carrito]);
-                      }} />
-                      <Button variant="contained" color="success" onClick={() => {
-                        detalle.cantidad = detalle.cantidad + 1;
-                        setCarrito([...carrito]);
-                      }}> + </Button>
-                    </Stack>
-                    <Typography variant="body2">Precio Total: {(detalle.precioUnidad * detalle.cantidad).toFixed(2)} €</Typography>
-                  </Stack>
-                </Stack>
-              </Paper>
-            ))}
-            <Typography variant="h6">
-              Total carrito: {CalcularTotalCarrito().toFixed(2)} €
-            </Typography>
-          </Stack>
-        </DialogContent>
-
-        <DialogActions>
-          <Button onClick={() => setOpenCarrito(false)}>
-            Seguir comprando
-          </Button>
-          <Button variant="contained" onClick={handleSubmitCompra}>
-            Comprar
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* Catálogo Productos */}
-      <Dialog
-        open={openCatalogo}
-        onClose={() => setOpenCatalogo(false)}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle>
-          Catálogo de Productos
-        </DialogTitle>
-
-        <DialogContent>
-          <Stack spacing={2} mt={1}>
-            <Stack direction="row" spacing={2} sx={{ mb: 4 }}>
+            <Stack spacing={3}>
               <TextField
-                label="Buscar por nombre o descripción"
-                fullWidth
+                placeholder="Buscar productos..."
                 value={searchProducto}
                 onChange={(e) => setSearchProducto(e.target.value)}
+                fullWidth
+                size="small"
               />
-              <Button variant="contained" color="warning" onClick={() => setOpenFormProducto(true)}> Nuevo Producto </Button>
+              
+              <Grid container spacing={2}>
+              {productosFiltrados.length === 0 ? (
+                <Paper sx={{ p: 4, textAlign: "center"  }}>
+                  <Typography color="textSecondary">No hay productos en el catálogo</Typography>
+                </Paper>
+              ) : (productosFiltrados.map((producto) => (
+                  <StockCard
+                    isJefe={usuarioCompleto.rol === "JEFE"}
+                    producto={producto}
+                    isVenta={true}
+                    onSale={() => {agregarProducto(producto)}}
+                  />
+              )))}
+            </Grid>
             </Stack>
+          )}
 
-            {productosFiltrados.map((producto)=> (
-              <Paper key = {producto.id} sx={{ p: 3, borderRadius: 3 }}>
-                <Stack direction="row" spacing={2} sx={{ mb: 4 }}>
-                  <Stack spacing={2} mt={1}>
-                    <Typography fontWeight={600}>{producto.nombre}</Typography>
-                    <Typography variant="body2">Descripcion: {producto.descripcion}</Typography>
-                    <Typography variant="body2">Precio Base: {producto.precioBase.toFixed(2)} €</Typography>
-                    {producto.expiracion && (
-                      <Typography variant="body2" color="error">
-                        Producto perecedero
-                      </Typography>
-                    )}
+            
+      <Dialog open={openCarrito} onClose={() => setOpenCarrito(false)} maxWidth="md" fullWidth PaperProps={{ sx: { maxHeight: "90vh" } }}>
+        <DialogTitle sx={{ fontWeight: 700, fontSize: "1.2rem" }}>Carrito de Compra</DialogTitle>
+
+        <DialogContent sx={{ pt: 2 }}>
+          <Stack spacing={2}>
+            {carrito.length === 0 ? (
+              <Typography color="textSecondary" sx={{ textAlign: "center", py: 3 }}>
+                El carrito está vacío
+              </Typography>
+            ) : (
+              carrito.map((detalle) => (
+                <Paper key={detalle.productoId} sx={{ p: 3, borderRadius: 2 }}>
+                  <Stack spacing={2}>
+                    <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ justifyContent: "space-between", alignItems: "flex-start" }}>
+                      <Stack spacing={1} sx={{ flex: 1 }}>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                          {detalle.producto?.nombre}
+                        </Typography>
+                        <Typography variant="body2" sx={{ color: "var(--text-secondary)" }}>
+                          {detalle.producto?.descripcion}
+                        </Typography>
+                        {detalle.expiracion && (
+                          <Typography variant="body2" sx={{ color: "error.main" }}>
+                            <strong>F.Cad:</strong> {new Date(detalle.expiracion).toLocaleDateString("es-ES")}
+                          </Typography>
+                        )}
+                      </Stack>
+                      <Stack spacing={2} sx={{ alignItems: "flex-end", minWidth: "200px" }}>
+                        <Typography variant="body2" sx={{ fontWeight: 700, color: "#667eea", fontSize: "1.1rem" }}>
+                          {(detalle.precioUnidad * detalle.cantidad).toFixed(2)}€
+                        </Typography>
+                        <Stack direction="row" spacing={5} sx={{ width: "100%", justifyContent: "space-Between" }}>
+                        
+                          <Stack spacing={0.5} sx={{ width: "100%" }}>
+                            <Typography variant="body2" sx={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>
+                              <strong>P. Unitario:</strong>
+                            </Typography>
+                            <TextField
+                              value={detalle.precioUnidad}
+                              onChange={(e) => {
+                                detalle.precioUnidad = parseFloat(e.target.value) || 0;
+                                setCarrito([...carrito]);
+                              }}
+                              size="small"
+                              type="number"
+                              inputMode="decimal"
+                              sx={{ width: "100%", "& input": { textAlign: "right" } }}
+                              InputProps={{
+                                endAdornment: "€",
+                              }}
+                            />
+                          </Stack>
+
+                          <Stack spacing={0.5} sx={{ width: "100%" }}>
+                            <Typography variant="body2" sx={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>
+                              <strong>Cantidad:</strong>
+                            </Typography>
+                            <Stack direction="row" spacing={1} sx={{ width: "100%" }}>
+                              <Button
+                                variant="outlined"
+                                size="small"
+                                onClick={() => {
+                                  detalle.cantidad = Math.max(0, detalle.cantidad - 1);
+                                  if (detalle.cantidad === 0) {
+                                    carrito.splice(carrito.findIndex((d) => d.productoId === detalle.productoId), 1);
+                                  }
+                                  setCarrito([...carrito]);
+                                }}
+                                sx={{ minWidth: "40px" }}
+                              >
+                                −
+                              </Button>
+                              <TextField
+                                value={detalle.cantidad}
+                                onChange={(e) => {
+                                  detalle.cantidad = parseInt(e.target.value) || 0;
+                                  if (detalle.cantidad === 0) {
+                                    carrito.splice(carrito.findIndex((d) => d.productoId === detalle.productoId), 1);
+                                  }
+                                  setCarrito([...carrito]);
+                                }}
+                                size="small"
+                                type="number"
+                                sx={{ flex: 1, "& input": { textAlign: "center" } }}
+                              />
+                              <Button
+                                variant="outlined"
+                                size="small"
+                                onClick={() => {
+                                  detalle.cantidad = detalle.cantidad + 1;
+                                  setCarrito([...carrito]);
+                                }}
+                                sx={{ minWidth: "40px" }}
+                              >
+                                +
+                              </Button>
+                            </Stack>
+                          </Stack>
+                        </Stack>
+                      </Stack>
+                    </Stack>
                   </Stack>
-                  <Stack spacing={2} mt={1}>
-                    <Typography fontWeight={600}>Cantidad en Stock</Typography>
-                    <Typography variant="body2">{producto.stocks[0]?.cantidad || 0}</Typography>
-                  </Stack>
-                  
-                  <Button variant="contained" color="success" onClick={() => agregarProducto(producto)}> Comprar a Proveedor </Button>
-                </Stack>
-              </Paper>
-            ))}
+                </Paper>
+              ))
+            )}
+
+            <Divider />
+
+            <Paper sx={{ p: 2, backgroundColor: "#f5f7fa", borderRadius: 2 }}>
+              <Stack direction="row" spacing={2} sx={{ justifyContent: "space-between", alignItems: "center" }}>
+                <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                  TOTAL:
+                </Typography>
+                <Typography variant="h5" sx={{ fontWeight: 700, color: "#667eea" }}>
+                  {CalcularTotalCarrito().toFixed(2)}€
+                </Typography>
+              </Stack>
+            </Paper>
           </Stack>
         </DialogContent>
 
-        <DialogActions>
-          <Button onClick={() => setOpenCatalogo(false)}>
-            Cancelar
-          </Button>
-          <Button variant="contained" onClick={() => {
-            setOpenCarrito(true);
-            setOpenCatalogo(false);
-          }}>
-            Comprar
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={() => setOpenCarrito(false)}>Cancelar</Button>
+          <Button variant="contained" onClick={handleSubmitCompra} disabled={carrito.length === 0} sx={{ background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" }}>
+            Finalizar Compra
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Formulario Nuevo Producto */}
-      <Dialog
-        open={openFormProducto}
-        onClose={() => setOpenFormProducto(false)}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle>
-          Nuevo Producto
-        </DialogTitle>
+      <AgregarAlCarrito open={openFormCantidad} onClose={() => setOpenFormCantidad(false)} onAgregar={agregarAlCarrito} formData={formData} setFormData={setFormData} />
+        </Stack>
+      </Box>
 
-        <DialogContent>
-          <Stack spacing={2} mt={1}>
-            <TextField
-              label="Nombre"
-              value={formData.nombre || ""}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  nombre: e.target.value,
-                })
-              }
-            />
-            <TextField
-              label="Descripcion"
-              value={formData.descripcion || ""}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  descripcion: e.target.value,
-                })
-              }
-            />
-            <TextField
-              label="tipo"
-              value={formData.tipo || ""}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  tipo: e.target.value,
-                })
-              }
-            />
-            <TextField
-              label="Porcentaje IVA"
-              value={formData.porcentajeIVA || ""}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  porcentajeIVA: e.target.value,
-                })
-              }
-            />
-
-            <TextField
-              label="Precio Base"
-              value={formData.precioBase || ""}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  precioBase: e.target.value,
-                })
-              }
-            />
-
-            <Stack direction="row" spacing={2} sx={{ mb: 4 }}>
-              <Typography variant="h6" >Fecha de expiración?</Typography>
-              <Button variant="contained" color={formData.expiracion ? "error" : "success"} onClick={() => {
-                if (formData.expiracion) {
-                  setFormData({
-                    ...formData,
-                    expiracion: null,
-                  });
-                }
-                else {
-                  setFormData({
-                    ...formData,
-                    expiracion: new Date(),
-                  });
-                }
-              }}>
-                {formData.expiracion ? "No" : "Sí"}
-              </Button>
-            </Stack>
-          
-          </Stack>
-        </DialogContent>
-
-        <DialogActions>
-          <Button onClick={() => setOpenFormProducto(false)}>
-            Cancelar
-          </Button>
-          <Button variant="contained" onClick={handleSubmitProducto}>
-            Guardar
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-
-      {/* Formulario Añadir a la cesta */}
-      <Dialog
-        open={openFormCantidad}
-        onClose={() => setOpenFormCantidad(false)}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle>
-          CANTIDAD - {formData.nombre}
-        </DialogTitle>
-
-        <DialogContent>
-          <Stack spacing={2} mt={1}>
-            <TextField
-              label="CANTIDAD"
-              value={formData.cantidad || ""}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  cantidad: parseInt(e.target.value) || 0,
-                })
-              }
-            />
-            <TextField
-              label="Precio por unidad"
-              value={formData.precioUnidad ?? ""}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  precioUnidad: e.target.value,
-                })
-              }
-              type="text"
-              inputMode="decimal"
-            />
-            
-            {
-              formData.expiracion && (
-                <TextField
-              label="Fecha de expiración"
-              value={formData.expiracion ? new Date(formData.expiracion).toISOString().split('T')[0] : ""}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  expiracion: new Date(e.target.value),
-                })
-              }
-              type="date"
-            />
-              )
-            }
-
-            <Typography variant="body2">Precio Total: {parseFloat(formData.precioUnidad || "0") * parseFloat(formData.cantidad || "0")} €</Typography>
-          </Stack>
-        </DialogContent>
-
-        <DialogActions>
-          <Button onClick={() => setOpenFormCantidad(false)}>
-            Cancelar
-          </Button>
-          <Button variant="contained" onClick= {() => {
-            
-              agregarAlCarrito();
-            
-            
-          }}>
-            Guardar
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-
-      <Snackbar
-        open={!!successMsg}
-        autoHideDuration={6000}
-        onClose={() => setSuccessMsg("")}
-      >
-        <Alert severity="success">{successMsg}</Alert>
-      </Snackbar>
+      <AppSnackbars successMsg={successMsg} errorMsg={errorMsg} setSuccessMsg={setSuccessMsg} setErrorMsg={setErrorMsg} />
     </Box>
   );
 }

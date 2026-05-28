@@ -1,5 +1,6 @@
 export class CreateCompraDto {
     proveedorId!: string;
+    empleadoId!: string;
     localId!: string;
     fecha!: Date;
     total!: number;

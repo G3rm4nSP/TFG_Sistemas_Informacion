@@ -21,7 +21,7 @@ export const User = createParamDecorator(
 export class ProveedorController {
   constructor(private readonly proveedorService: ProveedorService) {}
 
-  @Roles ('JEFE', 'ADMIN')
+  @Roles ('JEFE', 'ADMIN', 'RRHH')
   @Post()
   create(@Body() createProveedorDto: CreateProveedorDto) {
     return this.proveedorService.create(createProveedorDto);
@@ -37,7 +37,7 @@ export class ProveedorController {
     return this.proveedorService.findOne(id);
   }
 
-  @Roles ('JEFE', 'ADMIN')
+  @Roles ('JEFE', 'ADMIN', 'RRHH')
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateProveedorDto: UpdateProveedorDto) {
     return this.proveedorService.update(id, updateProveedorDto);

@@ -25,10 +25,10 @@ interface Producto {
 type Props = {
   open: boolean;
   onClose: () => void;
-  isEdit: boolean;
+  isEdit?: boolean;
   fetchCatalogoProductos: () => void;
-  fetchStock: () => void;
-  editingProducto: Producto | null;
+  fetchStock?: () => void;
+  editingProducto?: Producto | null;
 };
 
 export function CrearEditarProducto({
@@ -53,33 +53,17 @@ export function CrearEditarProducto({
         precioBase: editingProducto.precioBase,
         expiracion: editingProducto.expiracion ? new Date(editingProducto.expiracion).toISOString().split("T")[0] : null,
       });
+    } else {
+      setFormData({});
     }
   }, [isEdit, editingProducto]);
 
-  const handleEditProducto = async() => {
-    try {
-      const payload = {
-        nombre: formData.nombre,
-        descripcion: formData.descripcion,
-        tipo: formData.tipo,
-        porcentajeIVA: parseFloat(formData.porcentajeIVA),
-        precioBase: parseFloat(formData.precioBase),
-        expiracion: formData.expiracion || null,
-      };
-    
-      await api.patch(`/producto/${editingProducto?.id}`, payload);
-      setSuccessMsg("Producto actualizado correctamente");
-      fetchCatalogoProductos();
-      fetchStock();
-    } catch (error) {
-      console.error("Error editando producto:", error);
-      setErrorMsg("Error editando producto");
-    }
-    onClose();
-    setFormData({});
-  };
   
-  const handleCreateProducto = async () => {
+  const handleSubmit = async () => {
+    if (!formData.nombre || !formData.descripcion || !formData.tipo || !formData.porcentajeIVA || !formData.precioBase) {
+      setErrorMsg("Faltan campos requeridos");
+      return;
+    }
     try {
       const payload = {
         nombre: formData.nombre,
@@ -89,21 +73,26 @@ export function CrearEditarProducto({
         precioBase: parseFloat(formData.precioBase),
         expiracion: formData.expiracion || null,
       };
-    
+      if (isEdit && editingProducto) {
+        await api.patch(`/producto/${editingProducto.id}`, payload);
+        setSuccessMsg("Producto actualizado correctamente");
+      } else {
       await api.post("/producto", payload);
       setSuccessMsg("Producto creado correctamente");
+      }
       fetchCatalogoProductos();
+      fetchStock && fetchStock();
+      editingProducto && setFormData({});
     } catch (error) {
-      console.error("Error creando producto:", error);
-      setErrorMsg("Error creando producto");
+      setErrorMsg("Error guardando producto");
     }
     onClose();
     setFormData({});
   };
-    
+
   return (
     <>
-      <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+      <Dialog open={open} onClose={onClose}  maxWidth="sm" fullWidth>
         <DialogTitle>{isEdit ? "Editar Producto" : "Nuevo Producto"}</DialogTitle>
         <DialogContent sx={{ pt: 2 }}>
           <Stack spacing={2}>
@@ -158,8 +147,8 @@ export function CrearEditarProducto({
           </Stack>
         </DialogContent>
         <DialogActions>
-          <Button onClick={onClose}>Cancelar</Button>
-          <Button variant="contained" onClick={isEdit ? handleEditProducto : handleCreateProducto}>
+          <Button onClick={ () => { onClose(); setFormData({}); } }>Cancelar</Button>
+          <Button variant="contained" onClick={handleSubmit}>
             {isEdit ? "Editar" : "Guardar"}
           </Button>
         </DialogActions>

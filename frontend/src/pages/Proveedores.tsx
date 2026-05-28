@@ -1,22 +1,15 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import {
-  Box,
-  Typography,
-  Paper,
-  Button,
-  Stack,
-  Divider,
-  TextField,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Snackbar,
-  Alert
-} from "@mui/material";
+import { Box, Typography, Paper, Button, Stack, TextField, AppBar, Toolbar, Grid, useTheme, useMediaQuery } from "@mui/material";
 import { api } from "../api/axios";
-import { logout } from "../services/userService";
+import { useNavigate } from "react-router-dom";
+import BusinessIcon from "@mui/icons-material/Business";
+import AddIcon from "@mui/icons-material/Add";
+import { fetchUsuario, logout } from "../services/userService";
+import AppSnackbars from "../components/generals/AppSnackbars";
+import { CrearEditarProveedor } from "../components/Proveedor/CrearEditarProveedor";
+import ProveedorCard from "../components/Proveedor/ProveedorCard";
+import AppHeader from "../components/generals/AppHeader";
+
 interface Proveedor {
   id: string;
   nombre: string;
@@ -26,254 +19,102 @@ interface Proveedor {
   descripcion?: string;
 }
 
-function decodeToken(token: string) {
-  try {
-    const payload = token.split(".")[1];
-    return JSON.parse(atob(payload));
-  } catch {
-    return null;
-  }
-}
-
 export default function ProveedoresPage() {
-
-
-  const [proveedores, setProveedores] = useState<Proveedor[]>([]);
-  
   const [search, setSearch] = useState("");
-  
   const [openForm, setOpenForm] = useState(false);
-  const [editingProveedor, setEditingProveedor] =
-    useState<Proveedor | null>(null);
-  
-  const [formData, setFormData] = useState<any>({});
   const [successMsg, setSuccessMsg] = useState("");
-  
-  const token = localStorage.getItem("accessToken");
-  const user = token ? decodeToken(token) : null;
-  
+  const [errorMsg, setErrorMsg] = useState("");
+  const [proveedores, setProveedores] = useState<Proveedor[]>([]);
+  const [usuarioCompleto, setUsuarioCompleto] = useState<any>(null);
+  const [editingProveedor, setEditingProveedor] = useState<Proveedor | null>(null);
+
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   useEffect(() => {
+    const cargar = async () => {
+              const usuario = await fetchUsuario(navigate);
+              setUsuarioCompleto(usuario);
+            };
+            cargar();
     fetchProveedores();
   }, []);
 
-  const fetchProveedores = async() => {
-    const res = await api.get("/proveedor");
-    setProveedores(res.data);
+  const fetchProveedores = async () => {
+    try {
+      const response = await api.get("/proveedor");
+      setProveedores(response.data);
+    } catch (error) {
+      navigate("/login");
+    }
   };
 
-  const handleEdit = (prov: Proveedor) => {
-    setEditingProveedor(prov);
-    setFormData({prov});
-    setOpenForm(true);
-  }
+  const proveedoresFiltrados = proveedores.filter((proveedor) =>
+    [proveedor.nombre, proveedor.correo, proveedor.telefono, proveedor.horarioEntrega, proveedor.descripcion].some((f) =>
+      f?.toLowerCase().includes(search.toLowerCase())
+    )
+  );
 
-  const handleCreate = () => {
-    setEditingProveedor(null);
-    setFormData({});
-    setOpenForm(true); 
-  }
-
-  const handleSubmit = async() => {
-    const payload = {
-      nombre: formData.nombre,
-      correo: formData.correo,
-      telefono: formData.telefono,
-      horarioEntrega: formData.horarioEntrega,
-      descripcion: formData.descripcion
-    }
-
-    if (editingProveedor) {
-      await api.patch(`/proveedor/${editingProveedor.id}`, payload);
-      setSuccessMsg("Proveedor actualizado correctamente");
-    }
-
-    else {
-      await api.post("/proveedor", payload);
-      setSuccessMsg("Proveedor creado correctamente");
-    }
-
-    setOpenForm(false);
-    fetchProveedores();
-
-  }
-
-  const proveedoresFiltrados = proveedores.filter((prov) => {
-    const texto = search.toLowerCase();
-
-    return (
-      prov.nombre.toLowerCase().includes(texto) ||
-      prov.correo?.toLowerCase().includes(texto) ||
-      prov.telefono?.toLowerCase().includes(texto) ||
-      prov.descripcion?.toLowerCase().includes(texto)
-    );
-  })
-
-  const realizarPedido = (prov: Proveedor) => {
-      navigate(`/proveedores/${prov.id}`);
+  const handleLogout = () => {
+    logout(navigate);
   };
+
+  const handleDelete = async (id: string) => {
+    if (confirm("¿Estás seguro de que deseas eliminar este proveedor?")) {
+      try {
+        await api.delete(`/proveedor/${id}`);
+        setSuccessMsg("Proveedor eliminado correctamente");
+        fetchProveedores();
+      } catch (error) {
+        setErrorMsg("Error al eliminar el proveedor");
+      }
+    }
+  };
+
+  const handlePedido = (proveedor: Proveedor) => {
+    navigate(`/proveedores/${proveedor.id}`);
+  };
+
 
   return (
-    <Box p={5}>
-<Stack direction="row" justifyContent="space-between" mb={2}>
-        
-          <Typography variant="h4" sx={{ marginBottom: 4 }}>
-            Ventas - Panel Principal
-          </Typography>
-        
-          <Stack direction="column" spacing={2}>
-            <Button variant="contained" onClick={() => logout(navigate)}>
-              Cerrar sesión
-            </Button>
-          
-            {user?.rol === "VENTAS" && (
-              <Button variant="contained" onClick={() => navigate("/ventas")}>
-                Volver a ventas
+    <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh", background: "var(--background)" }}>
+      <AppHeader titulo="VISTA STOCK" icon={<BusinessIcon />} usuario={usuarioCompleto} onLogout={handleLogout} />
+      <Box sx={{ flex: 1, p: { xs: 2, md: 3 } }}>
+        <Stack spacing={3}>
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ alignItems: "center", justifyContent: "space-between" }}>
+            <Typography variant={isMobile ? "h5" : "h4"} sx={{ fontWeight: 700 }}>
+              Gestión de Proveedores
+            </Typography>
+            {usuarioCompleto?.rol === "JEFE" && (
+              <Button variant="contained" disabled={usuarioCompleto?.rol !== "JEFE"} startIcon={<AddIcon />} onClick={() =>{setOpenForm(true); setEditingProveedor(null);}}>
+                Nuevo Prveedor
               </Button>
-            )}
 
-            {user?.rol === "JEFE" && (
-              <Button variant="contained" onClick={() => navigate("/home")}>
-                Volver atras
-              </Button>
             )}
-
           </Stack>
-           
+
+          <TextField placeholder="Buscar proveedores..." value={search} onChange={(e) => setSearch(e.target.value)} fullWidth size="small" />
+
+          <Grid container spacing={2}>
+            {proveedoresFiltrados.map((proveedor) => (
+                <ProveedorCard proveedor={proveedor} 
+                onDelete={() => handleDelete(proveedor.id)} onEdit={ () => {setOpenForm(true); setEditingProveedor(proveedor);} }  onPedido={() => handlePedido(proveedor)} isRRHH={usuarioCompleto?.rol ==="RRHH"} isJefe={usuarioCompleto?.rol ==="JEFE"}/>
+            ))}
+          </Grid>
+
+          {proveedoresFiltrados.length === 0 && (
+            <Paper sx={{ p: 4, textAlign: "center" }}>
+              <Typography color="textSecondary">No se encontraron proveedores</Typography>
+            </Paper>
+          )}
         </Stack>
-    
-      <Stack direction="row" spacing={2} sx={{ mb: 4, alignItems: "center" }}>
-        <TextField
-          label="Buscar proveedor"
-          fullWidth
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+      </Box>
 
-        {user?.rol === "JEFE" && (
-          <Button variant="contained" onClick={handleCreate}>
-            Crear proveedor
-          </Button>
-        )}
-      </Stack>
+      <CrearEditarProveedor open={openForm} onClose={() => setOpenForm(false)} isEdit={!!editingProveedor} editingProveedor={editingProveedor} fetchProveedores={fetchProveedores} />
 
-      <Stack spacing={3}>
-        {proveedoresFiltrados.map((prov) => (
-          <Paper key={prov.id} sx={{ p: 3, borderRadius: 3 }}>  
-            <Stack
-              direction={{ xs: "column", md: "row" }}
-              justifyContent="space-between"
-              alignItems={{ xs: "flex-start", md: "center" }}
-            >
-              <Box>
-                <Typography fontWeight={600}>{prov.nombre}</Typography>
-                <Typography variant="body2">{prov.correo}</Typography>
-                <Typography variant="body2">{prov.telefono}</Typography>
-                <Typography variant="body2">{prov.descripcion}</Typography>
-                <Typography variant="body2">{prov.horarioEntrega}</Typography>
+      <AppSnackbars successMsg={successMsg} errorMsg={errorMsg} setSuccessMsg={setSuccessMsg} setErrorMsg={setErrorMsg}/>  
 
-                <Divider sx={{ my: 2 }} />
-                <Stack direction="row" spacing={2}>
-                  <Button variant="contained" color="primary" onClick={() => realizarPedido(prov)}> Realizar Pedido </Button>
-              
-                  {user?.rol === "JEFE" && (
-                      <>
-                      <Button variant="contained" color="success" onClick={() => handleEdit(prov)}> Editar </Button>
-                    </>
-                  )}
-                </Stack>          
-              </Box>
-            </Stack>
-          </Paper>
-        ))}
-      </Stack>
-      
-      {/* FORMULARIO */}
-      <Dialog
-        open={openForm}
-        onClose={() => setOpenForm(false)}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle>
-          {editingProveedor
-            ? "Editar proveedor"
-            : "Crear proveedor"}
-        </DialogTitle>
-
-        <DialogContent>
-          <Stack spacing={2} mt={1}>
-            <TextField
-              label="Nombre"
-              value={formData.nombre || ""}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  nombre: e.target.value,
-                })
-              }
-            />
-            <TextField
-              label="Correo"
-              value={formData.correo || ""}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  correo: e.target.value,
-                })
-              }
-            />
-            <TextField
-              label="Telefono"
-              value={formData.telefono || ""}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  telefono: e.target.value,
-                })
-              }
-            />
-            <TextField
-              label="Descripcion"
-              value={formData.descripcion || ""}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  descripcion: e.target.value,
-                })
-              }
-            />
-            <TextField
-              label="Horario Entrega"
-              value={formData.horarioEntrega || ""}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  horarioEntrega: e.target.value,
-                })
-              }
-            />
-          </Stack>
-        </DialogContent>
-
-        <DialogActions>
-          <Button onClick={() => setOpenForm(false)}>
-            Cancelar
-          </Button>
-          <Button variant="contained" onClick={handleSubmit}>
-            Guardar
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      <Snackbar
-        open={!!successMsg}
-        autoHideDuration={6000}
-        onClose={() => setSuccessMsg("")}
-      >
-        <Alert severity="success">{successMsg}</Alert>
-      </Snackbar>
     </Box>
   );
 }
